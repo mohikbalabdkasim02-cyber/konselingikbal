@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { CalendarDays, ChevronRight, FileCheck2, GraduationCap, LogOut, Search, ShieldCheck, Sparkles, Users, ClipboardList } from "lucide-react";
+import { CalendarDays, ChevronRight, FileCheck2, GraduationCap, LogOut, Search, ShieldCheck, Sparkles, Users, ClipboardList, LockKeyhole } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+
+const ADMIN_EMAIL = "mohikbalabdkasim.02@gmail.com";
 
 type Student = {
   id: string;
@@ -21,8 +23,7 @@ type StudentDocument = { student_id: string; status: string; latest_version: num
 export default function HomePage() {
   const [sessionReady, setSessionReady] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
-  const [email, setEmail] = useState("mohikbalabdkasim.02@gmail.com");
-  const [password, setPassword] = useState("");
+  const [pin, setPin] = useState("");
   const [authMessage, setAuthMessage] = useState("");
   const [students, setStudents] = useState<Student[]>([]);
   const [documents, setDocuments] = useState<Record<string, StudentDocument>>({});
@@ -60,18 +61,34 @@ export default function HomePage() {
     setLoading(false);
   }
 
+  function validatePin() {
+    if (!/^\d{6}$/.test(pin)) {
+      setAuthMessage("PIN harus terdiri dari 6 angka.");
+      return false;
+    }
+    return true;
+  }
+
   async function signIn(e: FormEvent) {
-    e.preventDefault(); setAuthMessage(""); setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setAuthMessage(error.message); setLoading(false);
+    e.preventDefault();
+    setAuthMessage("");
+    if (!validatePin()) return;
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: ADMIN_EMAIL, password: pin });
+    if (error) setAuthMessage("PIN salah atau akun belum diaktifkan.");
+    setLoading(false);
   }
 
   async function activateAccount() {
     setAuthMessage("");
-    if (!password || password.length < 8) return setAuthMessage("Gunakan password minimal 8 karakter untuk aktivasi akun pertama.");
+    if (!validatePin()) return;
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: "Moh Ikbal Abd Kasim" } } });
-    setAuthMessage(error ? error.message : "Akun dibuat. Jika verifikasi email aktif, cek inbox lalu login.");
+    const { error } = await supabase.auth.signUp({
+      email: ADMIN_EMAIL,
+      password: pin,
+      options: { data: { full_name: "Moh Ikbal Abd Kasim" } },
+    });
+    setAuthMessage(error ? error.message : "PIN berhasil didaftarkan. Jika Supabase meminta verifikasi email, buka email sekali saja lalu kembali dan masuk memakai PIN.");
     setLoading(false);
   }
 
@@ -91,7 +108,7 @@ export default function HomePage() {
   const proposalCount = Object.values(documents).filter((d)=>d.latest_version>0 && d.status!=="archived").length;
 
   if (!sessionReady) return <main className="center-screen"><div className="loader" /></main>;
-  if (!loggedIn) return <main className="login-page"><section className="login-panel"><div className="brand-mark">BI</div><p className="eyebrow">BINA INSAN PALU</p><h1>LifeMap</h1><p className="muted">Dashboard pemantauan siswa, proposal hidup, arah karier, dan pendampingan BK.</p><form onSubmit={signIn} className="login-form"><label>Email<input value={email} onChange={(e)=>setEmail(e.target.value)} type="email" required/></label><label>Password<input value={password} onChange={(e)=>setPassword(e.target.value)} type="password" required/></label><button className="primary-btn" disabled={loading}>{loading?"Memproses...":"Masuk"}</button><button type="button" className="ghost-btn" onClick={activateAccount} disabled={loading}>Aktivasi akun pertama</button></form>{authMessage&&<p className="auth-message">{authMessage}</p>}</section></main>;
+  if (!loggedIn) return <main className="login-page"><section className="login-panel"><div className="brand-mark"><LockKeyhole size={24}/></div><p className="eyebrow">BINA INSAN PALU</p><h1>LifeMap</h1><p className="muted">Masukkan PIN 6 angka untuk membuka dashboard konseling.</p><form onSubmit={signIn} className="login-form"><label>PIN<input value={pin} onChange={(e)=>setPin(e.target.value.replace(/\D/g,"").slice(0,6))} inputMode="numeric" autoComplete="current-password" type="password" pattern="[0-9]{6}" maxLength={6} placeholder="••••••" required/></label><button className="primary-btn" disabled={loading}>{loading?"Memproses...":"Masuk"}</button><button type="button" className="ghost-btn" onClick={activateAccount} disabled={loading}>Aktifkan PIN Pertama Kali</button></form><p className="muted" style={{fontSize:12,marginTop:16}}>Email admin tersimpan otomatis di sistem. Setelah aktivasi pertama, cukup gunakan PIN.</p>{authMessage&&<p className="auth-message">{authMessage}</p>}</section></main>;
 
   return <main className="app-shell">
     <header className="topbar"><div className="brand-row"><div className="brand-mark small">BI</div><div><strong>Bina Insan LifeMap</strong><span>Student Life & Career Dashboard</span></div></div><div className="top-actions"><Link href="/counseling" className="open-profile-btn" style={{marginTop:0,padding:'10px 13px'}}><ClipboardList size={17}/> BK Control Center</Link><div className="search-box"><Search size={18}/><input placeholder="Cari siswa, NIS, karier..." value={query} onChange={(e)=>setQuery(e.target.value)}/></div><button className="icon-btn" onClick={()=>supabase.auth.signOut()} title="Keluar"><LogOut size={18}/></button></div></header>
