@@ -1,0 +1,42 @@
+name: Stage 2 Build Fix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://pmfmrybzdkfmmmsdlddj.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_a953yOUs9wPEmE_6L0q2mA_8kyqflUn
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply targeted TypeScript fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('app/students/[id]/page.tsx')
+          s = p.read_text()
+          s = s.replace('new Map(rows.map((row) => [row.category, row]))', 'new globalThis.Map(rows.map((row) => [row.category, row]))')
+          p.write_text(s)
+          PY
+      - name: Install
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Commit verified fix
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/students/[id]/page.tsx package-lock.json
+          git commit -m "fix: verify stage 2 TypeScript build"
+          git push
