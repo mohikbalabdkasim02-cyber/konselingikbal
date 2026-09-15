@@ -3,8 +3,9 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, CheckCircle2, Download, FileText, Flag, GraduationCap, Loader2, Map, RefreshCw, Save, Target, Upload, UserRound } from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle2, Download, FileSearch, FileText, Flag, GraduationCap, Loader2, Map, RefreshCw, Save, Sparkles, Target, Upload, UserRound } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { parseProposalText, type ProposalExtraction } from "@/lib/proposal-parser";
 
 type Student = {
   id: string;
@@ -31,7 +32,20 @@ type Profile = {
 };
 
 type StudentDocument = { id: string; status: string; latest_version: number };
-type DocumentVersion = { id: string; version_number: number; storage_path: string; file_name: string; mime_type: string; file_size: number; uploaded_at: string; notes: string | null };
+type DocumentVersion = {
+  id: string;
+  version_number: number;
+  storage_path: string;
+  file_name: string;
+  mime_type: string;
+  file_size: number;
+  uploaded_at: string;
+  notes: string | null;
+  extraction_status?: string;
+  extracted_at?: string | null;
+  extracted_data?: ProposalExtraction | Record<string, never>;
+  extraction_notes?: string | null;
+};
 type LifeAspect = { id?: string; category: string; content: string; status: string; sort_order: number };
 type Milestone = { id: string; title: string; description: string | null; target_date: string | null; status: string; sort_order: number };
 type RoadmapItem = { id: string; title: string; description: string | null; mentor: string | null; target_date: string | null; status: string; sort_order: number };
@@ -80,6 +94,7 @@ export default function StudentWorkspacePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [message, setMessage] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [docxHtml, setDocxHtml] = useState<string | null>(null);
@@ -128,7 +143,7 @@ export default function StudentWorkspacePage() {
   }
 
   async function loadVersions(documentId: string) {
-    const { data, error } = await supabase.from("document_versions").select("id,version_number,storage_path,file_name,mime_type,file_size,uploaded_at,notes").eq("document_id", documentId).order("version_number", { ascending: false });
+    const { data, error } = await supabase.from("document_versions").select("id,version_number,storage_path,file_name,mime_type,file_size,uploaded_at,notes,extraction_status,extracted_at,extracted_data,extraction_notes").eq("document_id", documentId).order("version_number", { ascending: false });
     if (error) setMessage(error.message);
     setVersions((data ?? []) as DocumentVersion[]);
   }
@@ -179,14 +194,13 @@ export default function StudentWorkspacePage() {
       }
 
       const nextVersion = (currentDoc.latest_version || 0) + 1;
-      const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
       const storagePath = `${studentId}/proposal_hidup/v${nextVersion}-${Date.now()}-${safeName}`;
       const { error: uploadError } = await supabase.storage.from("student-proposals").upload(storagePath, file, { contentType: file.type, upsert: false });
       if (uploadError) throw uploadError;
 
       const { data: userData } = await supabase.auth.getUser();
-      const { error: versionError } = await supabase.from("document_versions").insert({
+      const { data: createdVersion, error: versionError } = await supabase.from("document_versions").insert({
         document_id: currentDoc.id,
         version_number: nextVersion,
         storage_path: storagePath,
@@ -194,7 +208,8 @@ export default function StudentWorkspacePage() {
         mime_type: file.type,
         file_size: file.size,
         uploaded_by: userData.user?.id ?? null,
-      });
+        extraction_status: file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ? "pending" : "unsupported",
+      }).select("id,version_number,storage_path,file_name,mime_type,file_size,uploaded_at,notes,extraction_status,extracted_at,extracted_data,extraction_notes").single();
       if (versionError) {
         await supabase.storage.from("student-proposals").remove([storagePath]);
         throw versionError;
@@ -202,13 +217,98 @@ export default function StudentWorkspacePage() {
 
       const { error: docError } = await supabase.from("student_documents").update({ latest_version: nextVersion, status: "uploaded" }).eq("id", currentDoc.id);
       if (docError) throw docError;
-      setMessage(`Proposal versi ${nextVersion} berhasil diunggah.`);
-      await loadWorkspace();
-      setActiveTab("proposal");
+
+      if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+        setMessage(`Proposal versi ${nextVersion} berhasil diunggah. Sedang membaca isinya…`);
+        await analyzeVersion(createdVersion as DocumentVersion, true);
+      } else {
+        setMessage(`Proposal versi ${nextVersion} berhasil diunggah. Pembacaan otomatis saat ini paling akurat untuk DOCX; PDF/DOC tetap tersimpan dan bisa dilihat.`);
+        await loadWorkspace();
+      }
+      setActiveTab("overview");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Upload gagal.");
     } finally {
       setUploading(false);
+    }
+  }
+
+  function mergeProfile(extracted: ProposalExtraction) {
+    if (!profile) return { student_id: studentId, ...EMPTY_PROFILE } as Profile;
+    const p = extracted.profile;
+    return {
+      ...profile,
+      expertise: profile.expertise?.trim() || p.expertise || "",
+      career_direction: profile.career_direction?.trim() || p.career_direction || "",
+      education_target: profile.education_target?.trim() || p.education_target || "",
+      role_model: profile.role_model?.trim() || p.role_model || "",
+      personal_brand: profile.personal_brand?.trim() || p.personal_brand || "",
+      major_target: profile.major_target?.trim() || p.major_target || "",
+      campus_target: profile.campus_target?.trim() || p.campus_target || "",
+      mentor: profile.mentor?.trim() || p.mentor || "",
+      summary_notes: p.summary_notes || profile.summary_notes || "",
+      journey_stage: profile.journey_stage === "belum_dipetakan" && (p.career_direction || p.expertise) ? "eksplorasi" : profile.journey_stage,
+    };
+  }
+
+  async function applyExtraction(extracted: ProposalExtraction) {
+    const mergedProfile = mergeProfile(extracted);
+    const operations: PromiseLike<unknown>[] = [];
+    operations.push(supabase.from("student_profiles").upsert(mergedProfile, { onConflict: "student_id" }));
+
+    const currentLife = new globalThis.Map(lifeAspects.map((item) => [item.category, item]));
+    const lifeRows = extracted.lifeAspects.map((item) => {
+      const existing = currentLife.get(item.category);
+      const content = existing?.content?.trim() || item.content;
+      return {
+        student_id: studentId,
+        category: item.category,
+        content,
+        status: content ? "filled" : "empty",
+        sort_order: LIFE_CATEGORIES.findIndex(([key]) => key === item.category),
+      };
+    }).filter((item) => item.content);
+    if (lifeRows.length) operations.push(supabase.from("life_aspects").upsert(lifeRows, { onConflict: "student_id,category" }));
+
+    if (milestones.length === 0 && extracted.milestones.length) {
+      operations.push(supabase.from("milestones").insert(extracted.milestones.map((title, index) => ({ student_id: studentId, title, sort_order: index }))));
+    }
+    if (roadmap.length === 0 && extracted.roadmap.length) {
+      operations.push(supabase.from("roadmap_items").insert(extracted.roadmap.map((title, index) => ({ student_id: studentId, title, sort_order: index }))));
+    }
+    await Promise.all(operations);
+  }
+
+  async function analyzeVersion(version: DocumentVersion, automatic = false) {
+    if (version.mime_type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      setMessage("Smart Proposal Reader saat ini membaca DOCX. PDF dan DOC tetap bisa disimpan/ditampilkan, tetapi belum diekstrak otomatis.");
+      return;
+    }
+    setAnalyzing(true);
+    setMessage(automatic ? "Membaca isi proposal dan memetakan jawaban…" : "Menganalisis proposal…");
+    await supabase.from("document_versions").update({ extraction_status: "processing", extraction_notes: null }).eq("id", version.id);
+    try {
+      const { data, error } = await supabase.storage.from("student-proposals").download(version.storage_path);
+      if (error || !data) throw error ?? new Error("Dokumen tidak dapat diunduh.");
+      const mammoth = await import("mammoth");
+      const arrayBuffer = await data.arrayBuffer();
+      const raw = await mammoth.extractRawText({ arrayBuffer });
+      const extracted = parseProposalText(raw.value);
+      await applyExtraction(extracted);
+      const status = extracted.needsReview.length ? "needs_review" : "completed";
+      await supabase.from("document_versions").update({
+        extraction_status: status,
+        extracted_at: new Date().toISOString(),
+        extracted_data: extracted,
+        extraction_notes: extracted.needsReview.join(" | ") || "Semua bagian utama terdeteksi.",
+      }).eq("id", version.id);
+      setMessage(`Proposal berhasil dibaca: ${extracted.found.length} kelompok data ditemukan${extracted.needsReview.length ? `, ${extracted.needsReview.length} bagian perlu dicek.` : "."}`);
+      await loadWorkspace();
+    } catch (error) {
+      await supabase.from("document_versions").update({ extraction_status: "failed", extraction_notes: error instanceof Error ? error.message : "Ekstraksi gagal" }).eq("id", version.id);
+      setMessage(error instanceof Error ? `Pembacaan proposal gagal: ${error.message}` : "Pembacaan proposal gagal.");
+    } finally {
+      setAnalyzing(false);
     }
   }
 
@@ -281,6 +381,7 @@ export default function StudentWorkspacePage() {
 
   if (loading || !student || !profile) return <main className="center-screen"><div className="loader" /></main>;
   const latest = versions[0];
+  const extraction = latest?.extracted_data && "found" in latest.extracted_data ? latest.extracted_data as ProposalExtraction : null;
 
   return (
     <main className="student-workspace-page">
@@ -295,11 +396,18 @@ export default function StudentWorkspacePage() {
           <div><p className="eyebrow">DETAIL SISWA</p><h1>{student.full_name}</h1><p>{student.classes?.name} · {student.gender === "L" ? "Laki-laki" : "Perempuan"}</p></div>
         </div>
         <div className="hero-actions">
+          {latest?.mime_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && <button className="smart-read-btn" onClick={()=>analyzeVersion(latest)} disabled={analyzing}><Sparkles size={17}/>{analyzing?"Membaca…":"Baca Proposal"}</button>}
           <label className="upload-btn"><Upload size={17}/>{uploading ? "Mengunggah..." : latest ? "Upload Versi Baru" : "Upload Proposal"}<input type="file" accept=".pdf,.doc,.docx" onChange={uploadProposal} disabled={uploading}/></label>
         </div>
       </section>
 
       {message && <div className="workspace-message">{message}</div>}
+
+      {extraction && <section className={latest?.extraction_status === "needs_review" ? "smart-reader-card review" : "smart-reader-card"}>
+        <div className="smart-reader-head"><div className="smart-reader-icon"><Sparkles size={20}/></div><div><p className="eyebrow">SMART PROPOSAL READER</p><h2>{latest?.extraction_status === "needs_review" ? "Data ditemukan — beberapa bagian perlu dicek" : "Proposal sudah dipetakan"}</h2><p>Dashboard mengisi bagian yang kosong dari isi dokumen. Data manual yang sudah ada tidak ditimpa.</p></div></div>
+        <div className="smart-reader-summary"><div><strong>{extraction.found.length}</strong><span>kelompok data ditemukan</span></div><div><strong>{extraction.lifeAspects.length}</strong><span>aspek Life Map</span></div><div><strong>{extraction.needsReview.length}</strong><span>perlu dicek</span></div></div>
+        <div className="smart-reader-tags">{extraction.found.map(item=><span className="found-tag" key={item}><CheckCircle2 size={14}/>{item}</span>)}{extraction.needsReview.map(item=><span className="review-tag" key={item}>{item}</span>)}</div>
+      </section>}
 
       <div className="journey-strip">
         {journeySteps.map((step, index) => <div key={step} className={progress[index] ? "journey-node done" : "journey-node"}><span>{progress[index] ? <CheckCircle2 size={15}/> : index + 1}</span><strong>{step}</strong></div>)}
@@ -326,7 +434,7 @@ export default function StudentWorkspacePage() {
         </div>
         <div className="workspace-card">
           <div className="card-title"><FileText size={18}/><div><p className="eyebrow">PROPOSAL HIDUP</p><h2>{latest ? `Versi ${latest.version_number}` : "Belum ada file"}</h2></div></div>
-          {latest ? <><p className="file-name">{latest.file_name}</p><p className="soft-copy">{formatBytes(latest.file_size)} · {formatDate(latest.uploaded_at)}</p><button className="wide-secondary" onClick={() => {setActiveTab('proposal'); openVersion(latest)}}>Buka proposal</button></> : <p className="soft-copy">Upload PDF atau Word untuk menghubungkan proposal hidup dengan profil siswa.</p>}
+          {latest ? <><p className="file-name">{latest.file_name}</p><p className="soft-copy">{formatBytes(latest.file_size)} · {formatDate(latest.uploaded_at)}</p><div className="proposal-actions-stack"><button className="wide-secondary" onClick={() => {setActiveTab('proposal'); openVersion(latest)}}>Buka proposal</button>{latest.mime_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && <button className="wide-smart" onClick={()=>analyzeVersion(latest)} disabled={analyzing}><FileSearch size={16}/>{analyzing?"Sedang membaca…":latest.extraction_status === "completed" || latest.extraction_status === "needs_review" ? "Baca ulang & sinkronkan":"Baca & isi otomatis"}</button>}</div></> : <p className="soft-copy">Upload PDF atau Word untuk menghubungkan proposal hidup dengan profil siswa.</p>}
         </div>
         <div className="workspace-card">
           <div className="card-title"><GraduationCap size={18}/><div><p className="eyebrow">DATA AKADEMIK</p><h2>{student.classes?.name}</h2></div></div>
@@ -336,17 +444,17 @@ export default function StudentWorkspacePage() {
 
       {activeTab === "lifemap" && <section className="workspace-card life-map-card">
         <div className="card-title"><Map size={18}/><div><p className="eyebrow">LIFE MAP</p><h2>Peta aspek hidup siswa</h2></div><button className="small-primary" onClick={saveLifeMap} disabled={saving}><Save size={16}/> Simpan Life Map</button></div>
-        <p className="section-copy">Isi ringkas sesuai proposal siswa. Kosongkan jika bagian tersebut memang belum disusun.</p>
+        <p className="section-copy">Isi ringkas sesuai proposal siswa. Jika Smart Proposal Reader menemukan jawaban yang jelas, bagian ini akan terisi otomatis dan tetap dapat dikoreksi.</p>
         <div className="life-aspect-grid">{lifeAspects.map((aspect, index) => {const label = LIFE_CATEGORIES.find(([key]) => key === aspect.category)?.[1] ?? aspect.category; return <label className={aspect.content.trim() ? "life-aspect filled" : "life-aspect"} key={aspect.category}><div><span className="aspect-index">{String(index+1).padStart(2,'0')}</span><strong>{label}</strong></div><textarea value={aspect.content} placeholder="Belum ada catatan..." onChange={(e) => setLifeAspects(lifeAspects.map((item,i) => i===index ? {...item,content:e.target.value} : item))}/></label>})}</div>
       </section>}
 
-      {activeTab === "milestone" && <section className="workspace-card">
+      {activeTab === "milestone" && <section className="workspace-card life-map-card">
         <div className="card-title"><Flag size={18}/><div><p className="eyebrow">MILESTONE</p><h2>Langkah konkret berikutnya</h2></div></div>
         <div className="quick-add"><input value={newMilestone} onChange={(e)=>setNewMilestone(e.target.value)} placeholder="Contoh: Menentukan 3 pilihan jurusan" onKeyDown={(e)=>{if(e.key==='Enter') addMilestone()}}/><button onClick={addMilestone}>Tambah</button></div>
         <div className="check-list">{milestones.map((item)=><button key={item.id} onClick={()=>toggleMilestone(item)} className={item.status==='completed' ? 'check-item complete':'check-item'}><span>{item.status==='completed' ? <CheckCircle2 size={18}/> : <span className="empty-check"/>}</span><div><strong>{item.title}</strong><small>{item.target_date ? formatDate(item.target_date) : 'Belum ada target tanggal'}</small></div></button>)}{milestones.length===0 && <Empty text="Belum ada milestone. Tambahkan langkah pertama siswa."/>}</div>
       </section>}
 
-      {activeTab === "roadmap" && <section className="workspace-card">
+      {activeTab === "roadmap" && <section className="workspace-card life-map-card">
         <div className="card-title"><Target size={18}/><div><p className="eyebrow">ROADMAP</p><h2>Urutan perjalanan menuju target</h2></div></div>
         <div className="quick-add"><input value={newRoadmap} onChange={(e)=>setNewRoadmap(e.target.value)} placeholder="Contoh: Persiapan SNBT" onKeyDown={(e)=>{if(e.key==='Enter') addRoadmapItem()}}/><button onClick={addRoadmapItem}>Tambah</button></div>
         <div className="roadmap-list">{roadmap.map((item,index)=><button key={item.id} onClick={()=>toggleRoadmap(item)} className={item.status==='completed'?'roadmap-step complete':'roadmap-step'}><span className="roadmap-number">{item.status==='completed'?<CheckCircle2 size={18}/>:index+1}</span><div><strong>{item.title}</strong><small>{item.mentor ? `Mentor: ${item.mentor}` : 'Mentor belum ditentukan'}</small></div></button>)}{roadmap.length===0 && <Empty text="Roadmap masih kosong. Susun urutan perjalanan siswa di sini."/>}</div>
@@ -355,7 +463,7 @@ export default function StudentWorkspacePage() {
       {activeTab === "proposal" && <section className="proposal-layout">
         <aside className="workspace-card version-panel">
           <div className="card-title"><BookOpen size={18}/><div><p className="eyebrow">DOKUMEN</p><h2>Riwayat Proposal</h2></div></div>
-          {versions.map((version,index)=><div className={index===0?'version-card current':'version-card'} key={version.id}><div><strong>Versi {version.version_number}</strong><span>{index===0?'Aktif':formatDate(version.uploaded_at)}</span></div><p>{version.file_name}</p><div className="version-actions"><button onClick={()=>openVersion(version)}>Lihat</button><button onClick={()=>downloadVersion(version)}><Download size={14}/> Unduh</button></div></div>)}
+          {versions.map((version,index)=><div className={index===0?'version-card current':'version-card'} key={version.id}><div><strong>Versi {version.version_number}</strong><span>{index===0?'Aktif':formatDate(version.uploaded_at)}</span></div><p>{version.file_name}</p><div className="extract-status"><span className={`status-dot ${version.extraction_status||'pending'}`}/>{labelExtraction(version.extraction_status)}</div><div className="version-actions"><button onClick={()=>openVersion(version)}>Lihat</button>{version.mime_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && <button onClick={()=>analyzeVersion(version)} disabled={analyzing}><Sparkles size={14}/> Analisis</button>}<button onClick={()=>downloadVersion(version)}><Download size={14}/> Unduh</button></div></div>)}
           {versions.length===0 && <Empty text="Belum ada proposal yang diunggah."/>}
         </aside>
         <div className="workspace-card document-viewer">
@@ -373,3 +481,4 @@ function Field({label,value,onChange}:{label:string;value:string;onChange:(value
 function Empty({text}:{text:string}) { return <div className="empty-workspace"><FileText size={22}/><span>{text}</span></div> }
 function formatBytes(value:number){ if(value<1024) return `${value} B`; if(value<1048576) return `${(value/1024).toFixed(1)} KB`; return `${(value/1048576).toFixed(1)} MB`; }
 function formatDate(value:string){ return new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'short',year:'numeric'}).format(new Date(value)); }
+function labelExtraction(value?:string){const labels:Record<string,string>={pending:"Belum dianalisis",processing:"Sedang membaca",completed:"Terbaca otomatis",needs_review:"Terbaca · perlu cek",unsupported:"Preview saja",failed:"Analisis gagal"};return labels[value||"pending"]||"Belum dianalisis"}
