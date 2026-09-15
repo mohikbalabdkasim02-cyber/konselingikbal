@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarClock, CheckCircle2, ClipboardList, Plus, Search, Users, AlertCircle, BarChart3, Download, GraduationCap } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, CalendarClock, Check, CheckCircle2, ChevronDown, ClipboardList, Plus, Search, Users, AlertCircle, BarChart3, Download, GraduationCap, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import "./stage3.css";
 
@@ -59,7 +59,7 @@ export default function CounselingPage(){
 
     <section className="stage3-grid">
       <div className="workspace-card"><div className="card-title"><CalendarClock size={18}/><div><p className="eyebrow">SESI BARU</p><h2>Jadwalkan konseling</h2></div></div><StageForm rows={rows} studentId={studentId} setStudentId={setStudentId}/><label className="profile-field"><span>Topik</span><input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="Contoh: pilihan jurusan"/></label><label className="profile-field"><span>Jenis</span><select value={sessionType} onChange={e=>setSessionType(e.target.value)}><option value="career">Karier</option><option value="academic">Akademik</option><option value="personal">Personal</option><option value="follow_up">Follow-up</option><option value="parent">Orang tua</option></select></label><label className="profile-field"><span>Jadwal</span><input type="datetime-local" value={scheduledAt} onChange={e=>setScheduledAt(e.target.value)}/></label><button className="small-primary full-btn" onClick={addSession}><Plus size={16}/> Tambah sesi</button></div>
-      <div className="workspace-card"><div className="card-title"><AlertCircle size={18}/><div><p className="eyebrow">TINDAK LANJ</p><h2>Buat follow-up</h2></div></div><StageForm rows={rows} studentId={studentId} setStudentId={setStudentId}/><label className="profile-field"><span>Tugas</span><input value={followTitle} onChange={e=>setFollowTitle(e.target.value)} placeholder="Contoh: finalisasi 3 pilihan kampus"/></label><label className="profile-field"><span>Prioritas</span><select value={priority} onChange={e=>setPriority(e.target.value)}><option value="low">Rendah</option><option value="normal">Normal</option><option value="high">Tinggi</option><option value="urgent">Urgent</option></select></label><label className="profile-field"><span>Batas waktu</span><input type="datetime-local" value={followDue} onChange={e=>setFollowDue(e.target.value)}/></label><button className="small-primary full-btn" onClick={addFollowUp}><Plus size={16}/> Tambah follow-up</button></div>
+      <div className="workspace-card"><div className="card-title"><AlertCircle size={18}/><div><p className="eyebrow">TINDAK LANJUT</p><h2>Buat follow-up</h2></div></div><StageForm rows={rows} studentId={studentId} setStudentId={setStudentId}/><label className="profile-field"><span>Tugas</span><input value={followTitle} onChange={e=>setFollowTitle(e.target.value)} placeholder="Contoh: finalisasi 3 pilihan kampus"/></label><label className="profile-field"><span>Prioritas</span><select value={priority} onChange={e=>setPriority(e.target.value)}><option value="low">Rendah</option><option value="normal">Normal</option><option value="high">Tinggi</option><option value="urgent">Urgent</option></select></label><label className="profile-field"><span>Batas waktu</span><input type="datetime-local" value={followDue} onChange={e=>setFollowDue(e.target.value)}/></label><button className="small-primary full-btn" onClick={addFollowUp}><Plus size={16}/> Tambah follow-up</button></div>
     </section>
 
     <section className="stage3-grid">
@@ -74,6 +74,25 @@ export default function CounselingPage(){
   </main>
 }
 
-function StageForm({rows,studentId,setStudentId}:{rows:Row[];studentId:string;setStudentId:(v:string)=>void}){return <label className="profile-field"><span>Siswa</span><select value={studentId} onChange={e=>setStudentId(e.target.value)}><option value="">Pilih siswa</option>{rows.map(r=><option key={r.student_id} value={r.student_id}>{r.full_name} — {r.class_name}</option>)}</select></label>}
+function StageForm({rows,studentId,setStudentId}:{rows:Row[];studentId:string;setStudentId:(v:string)=>void}){return <label className="profile-field"><span>Siswa</span><StudentPicker rows={rows} value={studentId} onChange={setStudentId}/></label>}
+
+function StudentPicker({rows,value,onChange}:{rows:Row[];value:string;onChange:(v:string)=>void}){
+  const [open,setOpen]=useState(false); const [query,setQuery]=useState(""); const wrapRef=useRef<HTMLDivElement>(null);
+  const selected=rows.find(r=>r.student_id===value);
+  const results=useMemo(()=>{const needle=query.trim().toLowerCase();return rows.filter(r=>!needle||`${r.full_name} ${r.class_name}`.toLowerCase().includes(needle)).slice(0,40)},[rows,query]);
+  useEffect(()=>{function close(e:MouseEvent){if(wrapRef.current&&!wrapRef.current.contains(e.target as Node))setOpen(false)}document.addEventListener('mousedown',close);return()=>document.removeEventListener('mousedown',close)},[]);
+  function choose(id:string){onChange(id);setOpen(false);setQuery("")}
+  return <div className="student-picker" ref={wrapRef}>
+    <button type="button" className={open?"student-picker-trigger active":"student-picker-trigger"} onClick={()=>setOpen(v=>!v)}>
+      <span>{selected?<><strong>{selected.full_name}</strong><small>{selected.class_name}</small></>:<span className="student-picker-placeholder">Cari atau pilih siswa</span>}</span>
+      <span className="picker-icons">{value&&<X size={15} onClick={(e)=>{e.stopPropagation();onChange("")}}/>}<ChevronDown size={17}/></span>
+    </button>
+    {open&&<div className="student-picker-popover">
+      <div className="student-picker-search"><Search size={17}/><input autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder="Ketik nama siswa, mis. A..."/></div>
+      <div className="student-picker-results">{results.length?results.map(r=><button type="button" key={r.student_id} className={r.student_id===value?"student-picker-option selected":"student-picker-option"} onClick={()=>choose(r.student_id)}><span><strong>{r.full_name}</strong><small>{r.class_name}</small></span>{r.student_id===value&&<Check size={16}/>}</button>):<div className="student-picker-empty">Tidak ada siswa yang cocok.</div>}</div>
+      <div className="student-picker-foot">{results.length} hasil · ketik untuk mempersempit pencarian</div>
+    </div>}
+  </div>
+}
 function Metric({label,value,icon}:{label:string;value:number;icon:React.ReactNode}){return <div className="stat-card"><div className="stat-icon">{icon}</div><div><span>{label}</span><strong>{value}</strong></div></div>}
 function labelOutcome(v:string){const labels:Record<string,string>={undecided:"Belum ditentukan",university:"Perguruan tinggi",vocational:"Vokasi",civil_service:"Kedinasan / PNS",military_police:"TNI / Polri",work:"Kerja",entrepreneurship:"Wirausaha",gap_year:"Gap year",other:"Lainnya"};return labels[v]||v}
