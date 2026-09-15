@@ -123,7 +123,7 @@ export default function StudentWorkspacePage() {
   }
 
   function normalizeLifeAspects(rows: LifeAspect[]) {
-    const byCategory = new Map(rows.map((row) => [row.category, row]));
+    const byCategory = new globalThis.Map(rows.map((row) => [row.category, row]));
     return LIFE_CATEGORIES.map(([category], index) => byCategory.get(category) ?? { category, content: "", status: "empty", sort_order: index });
   }
 
