@@ -20,6 +20,9 @@ type Student = {
 };
 
 type StudentDocument = { student_id: string; status: string; latest_version: number };
+type AssessmentAttempt = { student_id:string; status:string; assessment_definitions:{ domain:string } | null };
+type ActionPlanRow = { student_id:string; status:string };
+type ConsultationRow = { student_id:string; status:string };
 
 export default function HomePage() {
   const [sessionReady, setSessionReady] = useState(false);
@@ -28,6 +31,9 @@ export default function HomePage() {
   const [authMessage, setAuthMessage] = useState("");
   const [students, setStudents] = useState<Student[]>([]);
   const [documents, setDocuments] = useState<Record<string, StudentDocument>>({});
+  const [attempts, setAttempts] = useState<AssessmentAttempt[]>([]);
+  const [actionPlans, setActionPlans] = useState<ActionPlanRow[]>([]);
+  const [consultations, setConsultations] = useState<ConsultationRow[]>([]);
   const [query, setQuery] = useState("");
   const [classFilter, setClassFilter] = useState("all");
   const [gradeFilter, setGradeFilter] = useState("all");
@@ -53,7 +59,7 @@ export default function HomePage() {
   async function loadStudents() {
     setLoading(true);
     setAuthMessage("");
-    const [studentsRes, docsRes] = await Promise.all([
+    const [studentsRes, docsRes, attemptsRes, plansRes, consultationsRes] = await Promise.all([
       supabase
         .from("students")
         .select("id,full_name,gender,email,nis,nisn,classes(name,slug,grade),student_profiles(journey_stage,expertise,career_direction)")
@@ -63,14 +69,24 @@ export default function HomePage() {
         .from("student_documents")
         .select("student_id,status,latest_version")
         .eq("document_type", "proposal_hidup"),
+      supabase
+        .from("assessment_attempts")
+        .select("student_id,status,assessment_definitions(domain)")
+        .in("status", ["draft","submitted","reviewed"]),
+      supabase
+        .from("assessment_action_plans")
+        .select("student_id,status"),
+      supabase
+        .from("consultation_requests")
+        .select("student_id,status")
+        .in("status", ["requested","scheduled"]),
     ]);
     if (studentsRes.error) setAuthMessage(studentsRes.error.message);
     else setStudents((studentsRes.data ?? []) as unknown as Student[]);
-    if (!docsRes.error) {
-      setDocuments(
-        Object.fromEntries(((docsRes.data ?? []) as StudentDocument[]).map((item) => [item.student_id, item])),
-      );
-    }
+    if (!docsRes.error) setDocuments(Object.fromEntries(((docsRes.data ?? []) as StudentDocument[]).map((item) => [item.student_id, item])));
+    if (!attemptsRes.error) setAttempts((attemptsRes.data ?? []) as unknown as AssessmentAttempt[]);
+    if (!plansRes.error) setActionPlans((plansRes.data ?? []) as ActionPlanRow[]);
+    if (!consultationsRes.error) setConsultations((consultationsRes.data ?? []) as ConsultationRow[]);
     setLoading(false);
   }
 
@@ -140,6 +156,16 @@ export default function HomePage() {
     (s) => s.student_profiles?.journey_stage && s.student_profiles.journey_stage !== "belum_dipetakan",
   ).length;
   const proposalCount = Object.values(documents).filter((d) => d.latest_version > 0 && d.status !== "archived").length;
+  const domainLabels:Record<string,string> = { personal:"Pribadi", learning:"Belajar", social:"Sosial", career:"Karier" };
+  const domainPulse = ["personal","learning","social"].map((domain) => {
+    const relevant = attempts.filter((attempt) => attempt.assessment_definitions?.domain === domain);
+    const completed = new Set(relevant.filter((attempt) => ["submitted","reviewed"].includes(attempt.status)).map((attempt) => attempt.student_id)).size;
+    const inProgress = new Set(relevant.filter((attempt) => attempt.status === "draft").map((attempt) => attempt.student_id)).size;
+    return { domain, label:domainLabels[domain], completed, inProgress, percent:students.length ? Math.round((completed/students.length)*100) : 0 };
+  });
+  const activePlans = new Set(actionPlans.filter((plan) => plan.status !== "completed").map((plan) => plan.student_id)).size;
+  const openRequests = new Set(consultations.map((request) => request.student_id)).size;
+  const studentsWithAssessment = new Set(attempts.map((attempt) => attempt.student_id)).size;
 
   if (!sessionReady) {
     return (
@@ -278,9 +304,28 @@ export default function HomePage() {
 
           <section className="stage6-stat-grid" aria-label="Ringkasan data siswa">
             <SummaryStat title="Total siswa" value={students.length} note="Siswa aktif" />
-            <SummaryStat title="Proposal masuk" value={proposalCount} note="Proposal Hidup tersimpan" />
-            <SummaryStat title="Sudah dipetakan" value={mapped} note="Journey stage terisi" />
-            <SummaryStat title="Kelas XII" value={counts.xii} note="Siswa tingkat akhir" />
+            <SummaryStat title="Sudah asesmen" value={studentsWithAssessment} note="Memiliki attempt asesmen" />
+            <SummaryStat title="Action Plan aktif" value={activePlans} note="Siswa dengan rencana berjalan" />
+            <SummaryStat title="Request BK" value={openRequests} note="Menunggu / terjadwal" />
+          </section>
+
+          <section className="stage62-insight-grid" aria-label="Assessment Pulse">
+            <article className="stage62-insight-card">
+              <div className="stage62-insight-head"><div><p className="stage6-kicker">ASSESSMENT PULSE</p><h2>Gambaran asesmen siswa</h2><p>Persentase siswa yang telah menyelesaikan tiap domain asesmen.</p></div></div>
+              <div className="stage62-domain-bars">
+                {domainPulse.map((item)=><div className="stage62-domain-row" key={item.domain}><span>{item.label}</span><div className="stage62-domain-track"><i style={{width:`${item.percent}%`}}/></div><strong>{item.percent}%</strong></div>)}
+              </div>
+            </article>
+            <aside className="stage62-insight-card">
+              <div className="stage62-insight-head"><div><p className="stage6-kicker">PRIORITAS HARI INI</p><h2>Yang perlu dilihat</h2></div></div>
+              <div className="stage62-attention-list">
+                <div className="stage62-attention-item"><span>Request bicara dengan Guru BK</span><strong>{openRequests}</strong></div>
+                <div className="stage62-attention-item"><span>Action Plan masih aktif</span><strong>{activePlans}</strong></div>
+                <div className="stage62-attention-item"><span>Proposal masuk</span><strong>{proposalCount}</strong></div>
+                <div className="stage62-attention-item"><span>Sudah dipetakan</span><strong>{mapped}</strong></div>
+              </div>
+              <div className="stage62-mini-note">Gunakan angka ini sebagai pintu masuk monitoring. Detail sensitif tetap dibuka hanya pada ruang review siswa individual.</div>
+            </aside>
           </section>
 
           <section className="stage6-directory" id="siswa">

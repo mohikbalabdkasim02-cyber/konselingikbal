@@ -132,3 +132,42 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   .student-login-stage61{padding:0;background:#fff;place-items:stretch}.student-login-stage61-shell{width:100%;gap:0}.student-login-stage61-brand{border-radius:0;padding:24px;min-height:260px}.student-login-stage61-brand .student-login-stage61-logo{width:170px}.student-login-stage61-brand h1{font-size:40px}.student-login-stage61-brand>div>p:last-child{font-size:14px}.student-login-stage61-card{border:0;border-radius:0;box-shadow:none;padding:26px 20px 30px}.student-login-stage61-intro h2{font-size:26px}.student-login-stage61-footer{padding:14px 20px 22px;flex-direction:column;gap:3px;background:#fff}
   .student-portal-stage61{padding:12px!important}.student-portal-brandbar{border-radius:18px;padding:11px 12px}.student-portal-brandbar .brand-logo{width:118px}.student-portal-brandbar-identity>div{padding-left:11px}.student-portal-brandbar-identity strong{font-size:12px}.student-portal-logout{width:42px;padding:0;justify-content:center}.student-portal-logout span{display:none}.stage61-student-hero{padding:22px!important;border-radius:21px!important}.stage61-student-hero h1{font-size:30px!important}.stage61-student-hero-badge{display:none}
 }
+
+
+/* Stage 6.2 — Unified Insights Dashboard */
+.stage61-student-hero-copy{min-width:0;max-width:640px}
+.stage62-student-next{margin-top:22px;display:grid;gap:5px;max-width:610px;padding-top:18px;border-top:1px solid rgba(255,255,255,.14)}
+.stage62-student-next span{font-size:10px;font-weight:900;letter-spacing:.16em;color:var(--stage6-sky)}
+.stage62-student-next strong{font-size:14px;line-height:1.55;color:#F5FAFC;font-weight:760}
+.stage62-student-pulse{width:min(360px,100%);align-self:stretch;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:22px;padding:20px;display:flex;flex-direction:column;justify-content:center;gap:13px}
+.stage62-pulse-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.stage62-pulse-top span{font-size:12px;color:#D8E7ED;font-weight:750}.stage62-pulse-top strong{font-size:24px;color:#fff}
+.stage62-pulse-track{height:8px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden}.stage62-pulse-track i{display:block;height:100%;border-radius:inherit;background:var(--stage6-sky)}
+.stage62-pulse-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stage62-pulse-grid>div{padding:10px 0;border-top:1px solid rgba(255,255,255,.1);display:grid;gap:2px}.stage62-pulse-grid strong{font-size:14px;color:#fff}.stage62-pulse-grid span{font-size:9px;line-height:1.35;color:#BDD0D9}
+
+.stage62-insight-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:16px;margin-bottom:22px}
+.stage62-insight-card{background:#fff;border:1px solid var(--stage6-line);border-radius:24px;padding:22px;box-shadow:0 10px 32px rgba(8,62,89,.04)}
+.stage62-insight-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.stage62-insight-head h2{margin:3px 0 0;font-size:22px;letter-spacing:-.03em}.stage62-insight-head p{margin:5px 0 0;color:var(--stage6-muted);font-size:12px}
+.stage62-domain-bars{display:grid;gap:14px}.stage62-domain-row{display:grid;grid-template-columns:110px minmax(0,1fr) 56px;gap:12px;align-items:center}.stage62-domain-row>span{font-size:12px;font-weight:800;color:var(--stage6-ink)}.stage62-domain-row>strong{text-align:right;font-size:12px;color:var(--stage6-navy)}
+.stage62-domain-track{height:12px;border-radius:999px;background:#EEF3F5;overflow:hidden}.stage62-domain-track i{display:block;height:100%;border-radius:inherit;background:var(--stage6-navy)}
+.stage62-attention-list{display:grid;gap:10px}.stage62-attention-item{display:flex;justify-content:space-between;gap:14px;padding:13px 0;border-top:1px solid var(--stage6-line)}.stage62-attention-item:first-child{border-top:0}.stage62-attention-item span{font-size:12px;color:var(--stage6-muted)}.stage62-attention-item strong{font-size:18px;color:var(--stage6-navy)}
+.stage62-mini-note{margin-top:14px;padding:12px 13px;border-radius:14px;background:var(--stage6-soft);font-size:11px;line-height:1.5;color:var(--stage6-navy)}
+
+.stage62-control{background:var(--stage6-bg)!important}
+.stage62-control .student-workspace-topbar{max-width:none!important;min-height:76px!important;padding:13px 28px!important;background:#fff!important;border-bottom:1px solid var(--stage6-line)!important;border-radius:0!important;box-shadow:none!important}
+.stage62-control .workspace-brand{display:flex;align-items:center;gap:15px;color:var(--stage6-muted)!important;font-size:12px!important}.stage62-control .workspace-brand .brand-logo{width:138px}.stage62-control .workspace-brand strong{color:var(--stage6-navy);font-size:13px}
+.stage62-control .student-hero{max-width:1272px;margin:24px auto 18px!important;padding:28px!important;background:var(--stage6-navy)!important;color:#fff!important;border-radius:26px!important;box-shadow:var(--stage6-shadow)!important}
+.stage62-control .student-hero h1{color:#fff!important}.stage62-control .student-hero>div>p:last-child{color:#D5E4EB!important}.stage62-control .student-hero .eyebrow{color:var(--stage6-sky)!important}
+.stage62-control .stage3-action-btn{border-color:rgba(255,255,255,.26)!important;background:rgba(255,255,255,.08)!important;color:#fff!important}.stage62-control .stage3-action-btn:hover{background:rgba(255,255,255,.14)!important}
+.stage62-control .stat-card,.stage62-control .workspace-card{border-color:var(--stage6-line)!important;border-radius:20px!important;box-shadow:0 8px 26px rgba(8,62,89,.035)!important}
+.stage62-control .career-bars progress{accent-color:var(--stage6-navy)!important}
+
+@media(max-width:900px){
+  .stage62-student-pulse{width:100%}
+  .stage62-insight-grid{grid-template-columns:1fr}
+  .stage62-control .student-workspace-topbar{padding:12px 18px!important}
+}
+@media(max-width:620px){
+  .stage62-pulse-grid{grid-template-columns:1fr 1fr 1fr}
+  .stage62-student-next{margin-top:16px;padding-top:14px}
+  .stage62-control .workspace-brand .brand-logo{width:108px}
+}

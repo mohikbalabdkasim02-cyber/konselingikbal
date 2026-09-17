@@ -143,6 +143,16 @@ export default function StudentHomePage() {
     }
   }
 
+  const assessmentList = ASSESSMENT_SLUGS.map((slug) => assessmentStates[slug]);
+  const completedCount = assessmentList.filter((state) => state.status === "completed").length;
+  const activeCount = assessmentList.filter((state) => state.status === "in_progress").length;
+  const overallProgress = Math.round(assessmentList.reduce((sum, state) => sum + (state.progress ?? 0), 0) / assessmentList.length);
+  const nextMessage = activeCount > 0
+    ? "Lanjutkan asesmen yang sudah dimulai. Jawabanmu tersimpan otomatis."
+    : completedCount === assessmentList.length
+      ? "Asesmen utamamu sudah lengkap. Sekarang fokus pada Action Plan dan langkah berikutnya."
+      : "Mulai dari satu asesmen yang paling relevan dengan kondisimu hari ini.";
+
   if (loading) return <main className="center-screen"><div className="loader"/></main>;
   if (!student) return <main className="assessment-page"><div className="assessment-shell"><ErrorCard message={error || "Akun siswa belum tersedia."} onRetry={load}/></div></main>;
 
@@ -152,7 +162,26 @@ export default function StudentHomePage() {
       <button className="student-portal-logout" onClick={async()=>{await supabase.auth.signOut();router.replace('/student/login')}} title="Keluar dari Portal Siswa"><LogOut size={18}/><span>Keluar</span></button>
     </div>
 
-    <div className="student-portal-head stage61-student-hero"><div><p className="eyebrow">BINA INSAN • STUDENT PORTAL</p><h1>Assalamu’alaikum, {student.full_name.split(" ")[0]}</h1><p>{student.full_name} · {student.classes?.name ?? "Kelas belum tersedia"}</p></div><div className="stage61-student-hero-badge">Ruang perkembanganmu</div></div>
+    <div className="student-portal-head stage61-student-hero">
+      <div className="stage61-student-hero-copy">
+        <p className="eyebrow">BINA INSAN • STUDENT PORTAL</p>
+        <h1>Assalamu’alaikum, {student.full_name.split(" ")[0]}</h1>
+        <p>{student.full_name} · {student.classes?.name ?? "Kelas belum tersedia"}</p>
+        <div className="stage62-student-next">
+          <span>ARAH HARI INI</span>
+          <strong>{nextMessage}</strong>
+        </div>
+      </div>
+      <div className="stage62-student-pulse" aria-label="Ringkasan progres siswa">
+        <div className="stage62-pulse-top"><span>Perjalananmu</span><strong>{overallProgress}%</strong></div>
+        <div className="stage62-pulse-track"><i style={{width:`${overallProgress}%`}}/></div>
+        <div className="stage62-pulse-grid">
+          <div><strong>{completedCount}/3</strong><span>Asesmen selesai</span></div>
+          <div><strong>{activeCount}</strong><span>Sedang dilanjutkan</span></div>
+          <div><strong>{careerState.status === "not_started" ? "Mulai" : "Aktif"}</strong><span>BK Karier</span></div>
+        </div>
+      </div>
+    </div>
     <div className="student-portal-notice"><ShieldCheck size={19}/><div><strong>Ruang refleksi pribadi</strong><span>Jawaban asesmen digunakan untuk pendampingan BK sesuai kewenangan, bukan untuk memberi label.</span></div></div>
     {error && <div style={{marginBottom:14}}><ErrorCard message={error} onRetry={load}/></div>}
 
