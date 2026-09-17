@@ -48,6 +48,12 @@ test("stage 1 removes the superseded JSON seed RPC", () => {
   assert.match(sql, /drop function if exists public\.seed_initial_student_pins\(jsonb\)/i);
 });
 
+test("security-definer PIN RPCs explicitly revoke anonymous execution", () => {
+  const sql = migrationSql();
+  assert.match(sql, /revoke\s+execute\s+on\s+function\s+public\.set_student_pin\(uuid,\s*text\)\s+from\s+anon/i);
+  assert.match(sql, /revoke\s+execute\s+on\s+function\s+public\.initialize_student_pins\(\)\s+from\s+anon/i);
+});
+
 test("public repository migration never contains initial student names or plaintext PINs", () => {
   const sql = migrationSql();
   assert.doesNotMatch(sql, /260001|260024|260116/);
