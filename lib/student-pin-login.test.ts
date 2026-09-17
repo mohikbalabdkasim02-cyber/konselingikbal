@@ -1,4 +1,3 @@
-// Stage 2 student login TDD contract.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -19,7 +18,13 @@ test("stage 2 exposes only the active class/name roster before login", () => {
   assert.match(sql, /create or replace function public\.student_login_roster\(\)/i);
   assert.match(sql, /returns table\s*\([\s\S]*student_id uuid[\s\S]*full_name text[\s\S]*class_name text/i);
   assert.match(sql, /grant execute on function public\.student_login_roster\(\) to anon/i);
-  assert.doesNotMatch(sql, /select\s+[^;]*pin_hash[^;]*from\s+public\.student_access_credentials/i);
+
+  const rosterStart = sql.search(/create or replace function public\.student_login_roster\(\)/i);
+  const verifyStart = sql.search(/create or replace function public\.verify_student_pin_login/i);
+  assert.ok(rosterStart >= 0 && verifyStart > rosterStart, "roster function must appear before PIN verifier");
+  const rosterSql = sql.slice(rosterStart, verifyStart);
+  assert.doesNotMatch(rosterSql, /pin_hash/i);
+  assert.doesNotMatch(rosterSql, /student_access_credentials/i);
 });
 
 test("stage 2 verifies PIN server-side with lockout and service-role-only execution", () => {
