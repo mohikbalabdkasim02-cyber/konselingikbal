@@ -91,6 +91,8 @@ $$;
 revoke all on function public.set_student_pin(uuid, text) from public;
 grant execute on function public.set_student_pin(uuid, text) to authenticated;
 
+drop function if exists public.seed_initial_student_pins(jsonb);
+
 create or replace function public.initialize_student_pins()
 returns integer
 language plpgsql
