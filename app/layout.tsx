@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BKQuickAccess } from "@/components/bk/BKQuickAccess";
 import "./globals.css";
 import "./smart.css";
 import "./bk-v2.css";
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>{children}<BKQuickAccess/></body>
     </html>
   );
 }
