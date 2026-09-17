@@ -35,7 +35,7 @@ const LEGACY_LABELS: Record<string, string> = { personal: "Personal Life" };
 
 export function normalizeLifeAspectRows(rows: LifeAspectInput[]): NormalizedLifeAspect[] {
   const byCategory = new Map(rows.map((row) => [row.category, row]));
-  const canonical = CANONICAL_LIFE_CATEGORIES.map(([category], index) => {
+  const canonical: NormalizedLifeAspect[] = CANONICAL_LIFE_CATEGORIES.map(([category], index) => {
     const row = byCategory.get(category);
     return {
       ...(row?.id ? { id: row.id } : {}),
