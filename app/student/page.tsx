@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BookOpenCheck, ChevronRight, LogOut, ShieldCheck, Sparkles } from "lucide-react";
+import { BookOpenCheck, ChevronRight, LogOut, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toUserMessage } from "@/lib/errors";
 import { ErrorCard } from "@/components/common/ErrorCard";
@@ -37,10 +37,10 @@ export default function StudentHomePage() {
     <div className="student-portal-head"><div><p className="eyebrow">BINA INSAN • STUDENT PORTAL</p><h1>Assalamu’alaikum, {student.full_name.split(" ")[0]}</h1><p>{student.full_name} · {student.classes?.name ?? "Kelas belum tersedia"}</p></div><button className="icon-btn" onClick={()=>supabase.auth.signOut()} title="Keluar"><LogOut size={18}/></button></div>
     <div className="student-portal-notice"><ShieldCheck size={19}/><div><strong>Ruang refleksi pribadi</strong><span>Jawaban asesmen digunakan untuk pendampingan BK sesuai kewenangan, bukan untuk memberi label.</span></div></div>
     <div className="student-portal-grid">
-      <Link href="/student/assessments/pribadi" className="student-portal-card"><div className="student-portal-icon"><Sparkles size={21}/></div><div><span>ASESMEN</span><h2>Bimbingan Pribadi</h2><p>Kenali diri, emosi, kebiasaan, kebutuhan dukungan, dan susun Personal Action Plan 14 hari.</p></div><ChevronRight size={19}/></Link>
-      <div className="student-portal-card disabled"><div className="student-portal-icon"><BookOpenCheck size={21}/></div><div><span>SEGERA TERSEDIA</span><h2>Bimbingan Belajar</h2><p>Masalah belajar, penyebab, dampak, kebutuhan, dan rencana perbaikan.</p></div></div>
-      <div className="student-portal-card disabled"><div className="student-portal-icon"><BookOpenCheck size={21}/></div><div><span>SEGERA TERSEDIA</span><h2>Bimbingan Sosial</h2><p>Sekolah, kelas, guru, teman, batas sehat, dukungan, dan Social Action Plan.</p></div></div>
-      <div className="student-portal-card disabled"><div className="student-portal-icon"><BookOpenCheck size={21}/></div><div><span>BK KARIER</span><h2>Karier & LifeMap</h2><p>Proposal Hidup, eksplorasi karier, Plan A/B/C, roadmap, dan portofolio tetap dipertahankan.</p></div></div>
+      <Link href="/student/assessments/pribadi" className="student-portal-card"><div className="student-portal-icon"><Sparkles size={21}/></div><div><span>ASESMEN PRIBADI</span><h2>Bimbingan Pribadi</h2><p>Kenali diri, emosi, kebiasaan, kebutuhan dukungan, dan susun Personal Action Plan 14 hari.</p></div><ChevronRight size={19}/></Link>
+      <Link href="/student/assessments/belajar" className="student-portal-card"><div className="student-portal-icon"><BookOpenCheck size={21}/></div><div><span>ASESMEN BELAJAR</span><h2>Bimbingan Belajar</h2><p>Masalah belajar, penyebab, dampak, kebiasaan belajar, tekanan akademik, dan Learning Action Plan 14 hari.</p></div><ChevronRight size={19}/></Link>
+      <Link href="/student/assessments/sosial" className="student-portal-card"><div className="student-portal-icon"><UsersRound size={21}/></div><div><span>ASESMEN SOSIAL</span><h2>Bimbingan Sosial</h2><p>Sekolah, kelas, guru, teman, batas sehat, triase keselamatan, dan Social Action Plan 7–14 hari.</p></div><ChevronRight size={19}/></Link>
+      <div className="student-portal-card disabled"><div className="student-portal-icon"><BookOpenCheck size={21}/></div><div><span>BK KARIER</span><h2>Karier & LifeMap</h2><p>Proposal Hidup, eksplorasi karier, Plan A/B/C, roadmap, dan portofolio tetap dipertahankan dan akan diperluas.</p></div></div>
     </div>
   </section></main>;
 }
