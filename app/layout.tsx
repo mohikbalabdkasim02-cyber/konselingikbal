@@ -3,6 +3,7 @@ import { BKQuickAccess } from "@/components/bk/BKQuickAccess";
 import "./globals.css";
 import "./smart.css";
 import "./bk-v2.css";
+import "./student-plan.css";
 
 export const metadata: Metadata = {
   title: "Bina Insan LifeMap",
