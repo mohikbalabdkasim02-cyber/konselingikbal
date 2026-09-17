@@ -1,5 +1,17 @@
 export function toUserMessage(error: unknown): string {
-  const raw = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  const objectMessage =
+    error && typeof error === "object" && "message" in error && typeof (error as { message?: unknown }).message === "string"
+      ? (error as { message: string }).message
+      : "";
+  const objectDetails =
+    error && typeof error === "object" && "details" in error && typeof (error as { details?: unknown }).details === "string"
+      ? (error as { details: string }).details
+      : "";
+  const raw = error instanceof Error
+    ? error.message
+    : typeof error === "string"
+      ? error
+      : objectMessage || objectDetails;
   const message = raw.toLowerCase();
 
   if (!raw) return "Terjadi kendala. Silakan coba lagi.";
