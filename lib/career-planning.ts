@@ -18,6 +18,14 @@ type CareerPlanRow = {
   status?: string | null;
 };
 
+export type CareerPortfolioDraft = {
+  title: string;
+  category: string;
+  evidence_url?: string | null;
+  reflection?: string | null;
+  occurred_at?: string | null;
+};
+
 const POSITIONS: CareerPlanPosition[] = ["A", "B", "C"];
 
 export function blankCareerPlan(position: CareerPlanPosition): CareerPlanChoice {
@@ -53,12 +61,28 @@ export function toCareerChoicePayloads(studentId: string, choices: CareerPlanCho
     }));
 }
 
-export function toggleComparisonSelection(selected: string[], careerId: string, max = 3): string[] {
+export function toggleComparisonSelection(selected: string[], careerId: string, max = 4): string[] {
   if (selected.includes(careerId)) return selected.filter((id) => id !== careerId);
   if (selected.length >= max) return selected;
   return [...selected, careerId];
 }
 
+export function comparisonIsReady(selected: string[]): boolean {
+  return selected.length >= 2 && selected.length <= 4 && new Set(selected).size === selected.length;
+}
+
 export function portfolioItemIsMeaningful(item: { title: string; category?: string }) {
   return item.title.trim().length > 0;
+}
+
+export function toPortfolioPayload(studentId: string, item: CareerPortfolioDraft) {
+  return {
+    student_id: studentId,
+    title: item.title.trim(),
+    category: item.category || "other",
+    evidence_url: item.evidence_url?.trim() || null,
+    reflection: item.reflection?.trim() || null,
+    occurred_at: item.occurred_at || null,
+    status: "active",
+  };
 }
