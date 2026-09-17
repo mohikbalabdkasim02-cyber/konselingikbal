@@ -171,3 +171,29 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   .stage62-student-next{margin-top:16px;padding-top:14px}
   .stage62-control .workspace-brand .brand-logo{width:108px}
 }
+
+
+/* Stage 6.3 — Student Insight Dashboard */
+.stage63-student-insights{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:16px;margin:0 0 16px}
+.stage63-insight-card{background:#fff;border:1px solid var(--stage6-line);border-radius:22px;padding:21px;box-shadow:0 8px 28px rgba(8,62,89,.035)}
+.stage63-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:17px}
+.stage63-card-head span{display:block;font-size:10px;letter-spacing:.14em;font-weight:900;color:var(--stage6-navy)}
+.stage63-card-head h2{margin:5px 0 0;font-size:22px;letter-spacing:-.035em;color:var(--stage6-ink)}
+.stage63-card-head>strong{font-size:12px;color:var(--stage6-navy);background:var(--stage6-soft);padding:8px 10px;border-radius:999px;white-space:nowrap}
+.stage63-domain-list{display:grid;gap:10px}
+.stage63-domain-item{display:grid;gap:8px;padding:13px 14px;border:1px solid var(--stage6-line);border-radius:16px;text-decoration:none;color:var(--stage6-ink);background:#fff}
+.stage63-domain-item:hover{border-color:#B9D9E5;background:#FAFCFD}
+.stage63-domain-copy{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.stage63-domain-copy>div{display:grid;gap:2px}.stage63-domain-copy strong{font-size:13px}.stage63-domain-copy>div span{font-size:11px;color:var(--stage6-muted)}
+.stage63-domain-copy>span{font-size:10px;font-weight:850;color:var(--stage6-navy);white-space:nowrap}
+.stage63-domain-progress{height:7px;background:#EDF2F4;border-radius:999px;overflow:hidden}.stage63-domain-progress i{display:block;height:100%;background:var(--stage6-navy);border-radius:inherit}
+.stage63-domain-foot{display:flex;justify-content:space-between;gap:12px;align-items:center}.stage63-domain-foot small{font-size:10px;color:var(--stage6-muted);line-height:1.4}.stage63-domain-foot b{font-size:11px;color:var(--stage6-navy)}
+.stage63-next-card>p{margin:-3px 0 16px;color:var(--stage6-muted);font-size:13px;line-height:1.6}
+.stage63-next-action{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--stage6-navy);color:#fff;text-decoration:none;border-radius:17px;padding:16px 17px}
+.stage63-next-action>div{display:grid;gap:4px}.stage63-next-action span{font-size:9px;letter-spacing:.13em;font-weight:900;color:var(--stage6-sky)}.stage63-next-action strong{font-size:14px;line-height:1.4}.stage63-next-action svg{flex:0 0 20px}
+.stage63-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.stage63-mini-grid a{display:grid;gap:3px;padding:13px;border:1px solid var(--stage6-line);border-radius:15px;text-decoration:none;color:var(--stage6-ink);background:#fff}
+.stage63-mini-grid a:hover{background:var(--stage6-soft)}.stage63-mini-grid strong{font-size:12px;color:var(--stage6-navy)}.stage63-mini-grid span{font-size:10px;line-height:1.45;color:var(--stage6-muted)}
+
+@media(max-width:900px){.stage63-student-insights{grid-template-columns:1fr}}
+@media(max-width:620px){.stage63-insight-card{padding:16px}.stage63-card-head h2{font-size:19px}.stage63-domain-copy{gap:9px}.stage63-domain-copy>span{white-space:normal;text-align:right}.stage63-mini-grid{grid-template-columns:1fr}}
