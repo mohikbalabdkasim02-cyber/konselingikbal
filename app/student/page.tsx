@@ -153,6 +153,25 @@ export default function StudentHomePage() {
       ? "Asesmen utamamu sudah lengkap. Sekarang fokus pada Action Plan dan langkah berikutnya."
       : "Mulai dari satu asesmen yang paling relevan dengan kondisimu hari ini.";
 
+  const domainInsights = [
+    { slug:"pribadi" as AssessmentSlug, label:"Pribadi", caption:"Kenali diri & kebutuhan dukungan", href:"/student/assessments/pribadi" },
+    { slug:"belajar" as AssessmentSlug, label:"Belajar", caption:"Kebiasaan & strategi belajar", href:"/student/assessments/belajar" },
+    { slug:"sosial" as AssessmentSlug, label:"Sosial", caption:"Relasi, batas sehat & lingkungan", href:"/student/assessments/sosial" },
+  ];
+  const nextDomain = domainInsights.find(({slug}) => assessmentStates[slug].status === "in_progress")
+    ?? domainInsights.find(({slug}) => assessmentStates[slug].status !== "completed");
+  const nextActionHref = nextDomain?.href ?? (careerState.status === "not_started" ? "/student/career" : "/student/action-plan");
+  const nextActionTitle = nextDomain
+    ? `Lanjutkan Bimbingan ${nextDomain.label}`
+    : careerState.status === "not_started"
+      ? "Mulai BK Karier & LifeMap"
+      : "Buka Action Plan & Progres";
+  const nextActionCopy = nextDomain
+    ? assessmentStates[nextDomain.slug].detail
+    : careerState.status === "not_started"
+      ? "Hubungkan hasil refleksimu dengan arah studi, karier, dan LifeMap."
+      : "Ubah hasil refleksi menjadi langkah kecil yang bisa kamu jalankan dan evaluasi.";
+
   if (loading) return <main className="center-screen"><div className="loader"/></main>;
   if (!student) return <main className="assessment-page"><div className="assessment-shell"><ErrorCard message={error || "Akun siswa belum tersedia."} onRetry={load}/></div></main>;
 
@@ -184,6 +203,42 @@ export default function StudentHomePage() {
     </div>
     <div className="student-portal-notice"><ShieldCheck size={19}/><div><strong>Ruang refleksi pribadi</strong><span>Jawaban asesmen digunakan untuk pendampingan BK sesuai kewenangan, bukan untuk memberi label.</span></div></div>
     {error && <div style={{marginBottom:14}}><ErrorCard message={error} onRetry={load}/></div>}
+
+    <section className="stage63-student-insights" aria-label="Ringkasan perkembangan siswa">
+      <article className="stage63-insight-card stage63-domain-card">
+        <div className="stage63-card-head">
+          <div><span>PERKEMBANGANMU</span><h2>Tiga area utama</h2></div>
+          <strong>{completedCount}/3 selesai</strong>
+        </div>
+        <div className="stage63-domain-list">
+          {domainInsights.map((domain) => {
+            const state = assessmentStates[domain.slug];
+            const progress = state.progress ?? (state.status === "completed" ? 100 : 0);
+            return <Link key={domain.slug} href={domain.href} className="stage63-domain-item">
+              <div className="stage63-domain-copy">
+                <div><strong>{domain.label}</strong><span>{domain.caption}</span></div>
+                <span>{state.label}</span>
+              </div>
+              <div className="stage63-domain-progress"><i style={{width:`${progress}%`}}/></div>
+              <div className="stage63-domain-foot"><small>{state.detail}</small><b>{progress}%</b></div>
+            </Link>;
+          })}
+        </div>
+      </article>
+
+      <article className="stage63-insight-card stage63-next-card">
+        <div className="stage63-card-head"><div><span>LANGKAH BERIKUTNYA</span><h2>Satu langkah dulu</h2></div></div>
+        <p>{nextActionCopy}</p>
+        <Link href={nextActionHref} className="stage63-next-action">
+          <div><span>DISARANKAN SEKARANG</span><strong>{nextActionTitle}</strong></div>
+          <ChevronRight size={20}/>
+        </Link>
+        <div className="stage63-mini-grid">
+          <Link href="/student/action-plan"><strong>Action Plan</strong><span>Lihat target & refleksi progres</span></Link>
+          <Link href="/student/career"><strong>BK Karier</strong><span>{careerState.label}</span></Link>
+        </div>
+      </article>
+    </section>
 
     <div className="student-portal-grid">
       <PortalCard href="/student/assessments/pribadi" icon={<Sparkles size={21}/>} eyebrow="ASESMEN PRIBADI" title="Bimbingan Pribadi" description="Kenali diri, emosi, kebiasaan, kebutuhan dukungan, dan susun Personal Action Plan 14 hari." state={assessmentStates.pribadi}/>
