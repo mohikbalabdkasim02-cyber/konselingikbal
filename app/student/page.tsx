@@ -18,13 +18,25 @@ export default function StudentHomePage() {
   async function load() {
     setLoading(true); setError("");
     try {
-      const { data: sessionData } = await supabase.auth.getSession(); const user = sessionData.session?.user;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
       if (!user) { router.replace("/student/login"); return; }
-      const { data: link, error: linkError } = await supabase.from("student_auth_links").select("student_id").eq("auth_user_id", user.id).maybeSingle(); if (linkError) throw linkError;
-      let id=link?.student_id as string|undefined;
-      if (!id) { const { error: claimError } = await supabase.rpc("claim_student_account"); if (claimError) throw claimError; const { data: claimed } = await supabase.from("student_auth_links").select("student_id").eq("auth_user_id", user.id).single(); id=claimed?.student_id; }
-      if(!id) throw new Error("Akun siswa belum terhubung ke data siswa. Hubungi Guru BK.");
-      const { data, error: studentError } = await supabase.from("students").select("id,full_name,classes(name)").eq("id", id).single(); if (studentError) throw studentError;
+
+      const { data: link, error: linkError } = await supabase
+        .from("student_auth_links")
+        .select("student_id")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+      if (linkError) throw linkError;
+      const id = link?.student_id as string | undefined;
+      if (!id) throw new Error("Session siswa belum terhubung ke data siswa. Silakan keluar lalu masuk kembali dengan nama dan PIN.");
+
+      const { data, error: studentError } = await supabase
+        .from("students")
+        .select("id,full_name,classes(name)")
+        .eq("id", id)
+        .single();
+      if (studentError) throw studentError;
       setStudent(data as unknown as { id:string; full_name:string; classes:{name:string}|null });
     } catch (err) { setError(toUserMessage(err)); } finally { setLoading(false); }
   }
