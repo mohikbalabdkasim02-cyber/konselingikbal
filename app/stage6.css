@@ -1,0 +1,102 @@
+:root{
+  --stage6-navy:#083E59;
+  --stage6-navy-2:#123F5C;
+  --stage6-sky:#54C8F6;
+  --stage6-gold:#D1A922;
+  --stage6-ink:#102A3A;
+  --stage6-muted:#687C89;
+  --stage6-bg:#F4F7F9;
+  --stage6-surface:#FFFFFF;
+  --stage6-line:#E2E9ED;
+  --stage6-soft:#EDF4F6;
+  --stage6-radius:22px;
+  --stage6-shadow:0 16px 44px rgba(8,62,89,.08);
+}
+
+body{background:var(--stage6-bg);color:var(--stage6-ink)}
+a,button,input,select,textarea{transition:border-color .18s ease,background-color .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(84,200,246,.32);outline-offset:3px}
+
+.brand-logo{display:block;width:210px;max-width:100%;height:auto;object-fit:contain;object-position:left center;user-select:none}
+.brand-logo-compact{width:164px}
+
+.stage6-shell{min-height:100vh;display:grid;grid-template-columns:248px minmax(0,1fr);background:var(--stage6-bg)}
+.stage6-sidebar{position:sticky;top:0;height:100vh;padding:26px 20px 22px;background:#fff;border-right:1px solid var(--stage6-line);display:flex;flex-direction:column;gap:28px;z-index:25}
+.stage6-sidebar-brand{padding:4px 8px 14px;border-bottom:1px solid var(--stage6-line)}
+.stage6-nav{display:grid;gap:7px}
+.stage6-nav a,.stage6-nav button{min-height:46px;border:0;border-radius:14px;background:transparent;color:var(--stage6-muted);display:flex;align-items:center;gap:12px;padding:0 13px;text-decoration:none;font-weight:760;text-align:left;cursor:pointer}
+.stage6-nav a svg,.stage6-nav button svg{width:18px;height:18px;flex:0 0 18px}
+.stage6-nav a:hover,.stage6-nav button:hover,.stage6-nav a.active{background:var(--stage6-soft);color:var(--stage6-navy)}
+.stage6-sidebar-foot{margin-top:auto;border-top:1px solid var(--stage6-line);padding-top:18px;display:grid;gap:12px}
+.stage6-school-year{display:grid;gap:3px;padding:0 10px}.stage6-school-year span{font-size:11px;letter-spacing:.12em;font-weight:850;color:var(--stage6-muted)}.stage6-school-year strong{font-size:14px;color:var(--stage6-navy)}
+
+.stage6-main{min-width:0}
+.stage6-topbar{min-height:78px;padding:15px 34px;border-bottom:1px solid var(--stage6-line);background:rgba(255,255,255,.96);display:flex;align-items:center;justify-content:space-between;gap:22px;position:sticky;top:0;z-index:20}
+.stage6-topbar-copy{display:grid;gap:2px}.stage6-topbar-copy strong{font-size:15px}.stage6-topbar-copy span{font-size:12px;color:var(--stage6-muted)}
+.stage6-search{width:min(430px,46vw);height:46px;border:1px solid var(--stage6-line);background:#fff;border-radius:14px;display:flex;align-items:center;gap:10px;padding:0 14px;color:var(--stage6-muted)}
+.stage6-search:focus-within{border-color:#9ed7ea;box-shadow:0 0 0 4px rgba(84,200,246,.13)}
+.stage6-search input{border:0;outline:0;background:transparent;width:100%;color:var(--stage6-ink);padding:0}
+
+.stage6-content{padding:34px;max-width:1500px;margin:0 auto}
+.stage6-hero{background:var(--stage6-navy);color:#fff;border-radius:28px;padding:34px;display:flex;align-items:flex-end;justify-content:space-between;gap:30px;box-shadow:var(--stage6-shadow);margin-bottom:22px}
+.stage6-hero-copy{max-width:760px}.stage6-kicker{margin:0 0 9px;font-size:11px;letter-spacing:.16em;font-weight:900;color:var(--stage6-sky)}
+.stage6-hero h1{margin:0;font-size:clamp(32px,4vw,54px);line-height:1.02;letter-spacing:-.045em}.stage6-hero p:not(.stage6-kicker){margin:14px 0 0;max-width:680px;line-height:1.65;color:#D8E5EC}
+.stage6-hero-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.stage6-primary-link,.stage6-secondary-link{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:0 16px;border-radius:14px;text-decoration:none;font-weight:850;border:1px solid transparent}
+.stage6-primary-link{background:#fff;color:var(--stage6-navy)}
+.stage6-secondary-link{background:transparent;color:#fff;border-color:rgba(255,255,255,.28)}
+.stage6-primary-link:hover{background:#EEF6F9}.stage6-secondary-link:hover{background:rgba(255,255,255,.08)}
+
+.stage6-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.stage6-stat{background:#fff;border:1px solid var(--stage6-line);border-radius:20px;padding:20px 21px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 8px 26px rgba(8,62,89,.04)}
+.stage6-stat span{font-size:13px;color:var(--stage6-muted);font-weight:700}.stage6-stat strong{font-size:34px;letter-spacing:-.04em;color:var(--stage6-navy)}.stage6-stat small{font-size:11px;color:#8A9AA4}
+
+.stage6-directory{background:#fff;border:1px solid var(--stage6-line);border-radius:24px;padding:24px;box-shadow:0 10px 32px rgba(8,62,89,.04)}
+.stage6-directory-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:18px}.stage6-directory-head h2{margin:3px 0 0;font-size:27px;letter-spacing:-.03em}.stage6-directory-head p{margin:0;color:var(--stage6-muted)}
+.stage6-directory-head select{min-width:190px;border:1px solid var(--stage6-line);background:#fff;border-radius:13px;padding:11px 13px;color:var(--stage6-ink)}
+.stage6-filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.stage6-filter-row button{border:1px solid var(--stage6-line);background:#fff;color:var(--stage6-muted);border-radius:999px;padding:8px 13px;font-weight:780;cursor:pointer}.stage6-filter-row button.active{background:var(--stage6-navy);border-color:var(--stage6-navy);color:#fff}
+.stage6-student-list{display:grid}.stage6-student-row{appearance:none;width:100%;border:0;border-top:1px solid var(--stage6-line);background:#fff;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:14px;align-items:center;text-align:left;padding:15px 4px;cursor:pointer;color:var(--stage6-ink)}.stage6-student-row:first-child{border-top:0}.stage6-student-row:hover{background:#F8FBFC}
+.stage6-avatar{width:44px;height:44px;border-radius:14px;background:var(--stage6-soft);display:grid;place-items:center;color:var(--stage6-navy);font-weight:900}
+.stage6-student-copy{display:grid;gap:4px}.stage6-student-copy strong{font-size:14px}.stage6-student-copy span{font-size:12px;color:var(--stage6-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stage6-row-meta{display:flex;align-items:center;gap:10px}.stage6-proposal-badge{font-size:11px;font-weight:800;color:var(--stage6-muted);background:#F4F7F8;border-radius:999px;padding:7px 10px}.stage6-proposal-badge.ready{background:#EAF5F3;color:#0B5D55}
+.stage6-empty{padding:34px;text-align:center;color:var(--stage6-muted)}
+
+.stage6-login{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(380px,.95fr);background:#fff}
+.stage6-login-brand{padding:54px;display:flex;flex-direction:column;justify-content:space-between;background:var(--stage6-navy);color:#fff;min-height:100vh}
+.stage6-login-brand .brand-logo{width:250px;filter:brightness(0) invert(1);opacity:.96}
+.stage6-login-message{max-width:650px}.stage6-login-message h1{font-size:clamp(42px,5vw,72px);line-height:1;letter-spacing:-.05em;margin:0}.stage6-login-message p{color:#D5E4EB;line-height:1.65;font-size:16px;max-width:560px}.stage6-login-note{font-size:12px;color:#B9CED8}
+.stage6-login-form-wrap{display:grid;place-items:center;padding:40px;background:var(--stage6-bg)}
+.stage6-login-card{width:min(470px,100%);background:#fff;border:1px solid var(--stage6-line);border-radius:26px;padding:34px;box-shadow:var(--stage6-shadow)}
+.stage6-login-card h2{font-size:30px;letter-spacing:-.035em;margin:8px 0}.stage6-login-card>p{color:var(--stage6-muted);line-height:1.55}
+.stage6-login-form{display:grid;gap:14px;margin-top:24px}.stage6-login-form label{display:grid;gap:7px;font-size:13px;font-weight:800}.stage6-login-form input{height:50px;border:1px solid var(--stage6-line);border-radius:14px;padding:0 14px;font-size:18px;letter-spacing:.18em}.stage6-login-form input:focus{border-color:#95D8EF;box-shadow:0 0 0 4px rgba(84,200,246,.12);outline:0}
+.stage6-login-form button{height:48px;border:0;border-radius:14px;font-weight:850;cursor:pointer}.stage6-login-form .primary-btn{background:var(--stage6-navy);color:#fff}.stage6-login-form .ghost-btn{background:var(--stage6-soft);color:var(--stage6-navy)}
+.stage6-login-student{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px;border:1px solid var(--stage6-line);border-radius:16px;text-decoration:none;color:var(--stage6-navy);font-weight:850;background:#fff}.stage6-login-student span{display:grid;gap:2px}.stage6-login-student small{color:var(--stage6-muted);font-weight:600}
+
+.stage6-offline{min-height:100vh;display:grid;place-items:center;padding:28px;background:var(--stage6-bg)}.stage6-offline-card{width:min(590px,100%);background:#fff;border:1px solid var(--stage6-line);border-radius:28px;padding:38px;box-shadow:var(--stage6-shadow)}.stage6-offline-card h1{font-size:34px;letter-spacing:-.04em;margin:10px 0}.stage6-offline-card p:not(.stage6-kicker){color:var(--stage6-muted);line-height:1.65}.stage6-offline-card .stage6-primary-link{background:var(--stage6-navy);color:#fff;margin-top:8px}
+
+/* Stage 6 polish layer for existing student/BK surfaces. Business logic remains untouched. */
+.student-workspace-page,.student-portal-page,.assessment-page,.career-page{background:var(--stage6-bg)!important}
+.student-workspace-topbar,.workspace-tabs,.workspace-card,.panel,.side-card{border-color:var(--stage6-line)!important;box-shadow:none}
+.workspace-card,.panel,.side-card{border-radius:20px!important}
+.workspace-tabs{padding:6px!important}
+.workspace-tabs button{border-radius:11px!important}.workspace-tabs button.active{background:var(--stage6-navy)!important}
+.primary-btn,.small-primary,.open-profile-btn,.quick-add button{background:var(--stage6-navy)!important}
+.status-pill,.stat-icon,.avatar,.big-avatar,.aspect-index,.roadmap-number{color:var(--stage6-navy)}
+
+@media (max-width:1100px){
+  .stage6-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stage6-hero{align-items:flex-start;flex-direction:column}
+  .stage6-hero-actions{justify-content:flex-start}
+}
+
+@media (max-width:900px){
+  .stage6-shell{grid-template-columns:1fr}
+  .stage6-sidebar{height:auto;position:static;border-right:0;border-bottom:1px solid var(--stage6-line);padding:14px 18px;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:14px}.stage6-sidebar-brand{border:0;padding:0}.brand-logo-compact{width:118px}.stage6-nav{display:flex;overflow:auto;gap:5px}.stage6-nav a,.stage6-nav button{white-space:nowrap;padding:0 10px;min-height:40px}.stage6-sidebar-foot{display:none}
+  .stage6-topbar{position:static;padding:14px 18px}.stage6-topbar-copy{display:none}.stage6-search{width:100%}
+  .stage6-content{padding:20px 18px 34px}.stage6-hero{padding:26px;border-radius:22px}.stage6-directory{padding:18px}.stage6-directory-head{align-items:stretch;flex-direction:column}.stage6-directory-head select{width:100%}
+  .stage6-login{grid-template-columns:1fr}.stage6-login-brand{min-height:auto;padding:28px;gap:42px}.stage6-login-message h1{font-size:42px}.stage6-login-form-wrap{padding:28px 18px}
+}
+
+@media (max-width:620px){
+  .stage6-stat-grid{grid-template-columns:1fr 1fr;gap:10px}.stage6-stat{min-height:102px;padding:15px}.stage6-stat strong{font-size:28px}.stage6-student-row{grid-template-columns:44px minmax(0,1fr) 18px}.stage6-row-meta .stage6-proposal-badge{display:none}.stage6-hero h1{font-size:36px}.stage6-primary-link,.stage6-secondary-link{width:100%}.stage6-hero-actions{width:100%}.stage6-login-card{padding:26px 22px}
+}
