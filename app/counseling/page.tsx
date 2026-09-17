@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, CalendarClock, Check, CheckCircle2, ChevronDown, ClipboardList, Plus, Search, Users, AlertCircle, BarChart3, Download, GraduationCap, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import "./stage3.css";
 
 type Row = {
@@ -45,9 +46,12 @@ export default function CounselingPage(){
 
   function exportCsv(){const header=["Nama","Kelas","Tingkat","Arah Karier","Target Pendidikan","Proposal","Pernah Konseling","Follow-up Aktif","Follow-up Berikutnya"];const body=filtered.map(r=>[r.full_name,r.class_name,String(r.grade),r.career_direction||"",r.education_target||"",String(r.proposal_version),r.has_counseling?"Ya":"Tidak",String(r.open_follow_ups),r.next_follow_up_at||""]);const csv=[header,...body].map(row=>row.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`monitoring-bk-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);}
 
-  return <main className="student-workspace-page">
-    <header className="student-workspace-topbar"><Link href="/" className="back-link"><ArrowLeft size={18}/> Dashboard</Link><div className="workspace-brand">Bina Insan <strong>BK Control Center</strong></div></header>
-    <section className="student-hero"><div><p className="eyebrow">TAHAP 3</p><h1>Monitoring Konseling & Follow-up</h1><p>Kelola sesi BK, tindak lanjut, prioritas siswa, outcome, dan ringkasan arah karier dalam satu tempat.</p></div><div className="stage3-actions"><button className="stage3-action-btn" onClick={exportCsv}><Download size={16}/> Ekspor CSV</button></div></section>
+  return <main className="student-workspace-page stage62-control">
+    <header className="student-workspace-topbar">
+      <Link href="/" className="back-link"><ArrowLeft size={18}/> Dashboard</Link>
+      <div className="workspace-brand"><BrandLogo compact/><span>Student Development Platform</span><strong>BK Control Center</strong></div>
+    </header>
+    <section className="student-hero"><div><p className="eyebrow">BINA INSAN • BK CONTROL CENTER</p><h1>Monitoring, tindak lanjut, dan keputusan BK dalam satu ruang.</h1><p>Prioritaskan siswa yang membutuhkan perhatian, pantau asesmen dan follow-up, lalu hubungkan setiap temuan ke tindakan yang jelas.</p></div><div className="stage3-actions"><button className="stage3-action-btn" onClick={exportCsv}><Download size={16}/> Ekspor CSV</button></div></section>
     {msg&&<div className="workspace-message">{msg}</div>}
     <div className="stats-grid stage3-stats"><Metric label="Siswa aktif" value={stats.total} icon={<Users size={20}/>}/><Metric label="Pernah konseling" value={stats.counseled} icon={<ClipboardList size={20}/>}/><Metric label="Perlu follow-up" value={stats.follow} icon={<AlertCircle size={20}/>}/><Metric label="Proposal masuk" value={stats.proposal} icon={<BarChart3 size={20}/>}/></div>
 
