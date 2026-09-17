@@ -43,6 +43,8 @@ for (const table of requiredTables) {
   if (message.includes("pgrst205") || message.includes("could not find the table") || (message.includes("relation") && message.includes("does not exist"))) {
     missing.push(table);
     console.error(`✗ ${table}: table missing`);
+  } else if (error.code === "42501" || message.includes("permission denied")) {
+    console.log(`✓ ${table} (reachable, access protected)`);
   } else {
     failures.push({ table, error });
     console.error(`✗ ${table}: ${error.code ?? "error"} ${error.message ?? "unknown error"}`);
