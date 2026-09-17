@@ -21,21 +21,26 @@ test("stage 1 creates a dedicated student credential table with lock metadata", 
   assert.match(sql, /is_active\s+boolean/i);
 });
 
-test("stage 1 hashes PINs with pgcrypto and exposes staff-only reset foundation", () => {
+test("stage 1 hashes PINs with pgcrypto and uses the production staff helper", () => {
   const sql = migrationSql();
   assert.match(sql, /crypt\(.*gen_salt\('bf'/s);
   assert.match(sql, /create or replace function public\.set_student_pin/i);
-  assert.match(sql, /assessment_is_staff\(\)/i);
+  assert.match(sql, /public\.is_staff\(\)/i);
+  assert.doesNotMatch(sql, /assessment_is_staff\(\)/i);
   assert.match(sql, /PIN_FORMAT_INVALID/);
 });
 
-test("stage 1 provides a staff-only bulk seed function that requires exactly 116 assignments", () => {
+test("stage 1 provides a one-click initializer for exactly 116 active students", () => {
   const sql = migrationSql();
-  assert.match(sql, /create or replace function public\.seed_initial_student_pins/i);
-  assert.match(sql, /jsonb_array_length\(p_assignments\)\s*<>\s*116/i);
-  assert.match(sql, /PIN_ASSIGNMENT_COUNT_INVALID/);
-  assert.match(sql, /PIN_DUPLICATE/);
-  assert.match(sql, /STUDENT_MAPPING_NOT_FOUND/);
+  assert.match(sql, /create or replace function public\.initialize_student_pins\(\)/i);
+  assert.match(sql, /STUDENT_COUNT_INVALID/);
+  assert.match(sql, /v_student_count\s*<>\s*116/i);
+  assert.match(sql, /when\s+'X Abu Bakar'\s+then\s+1/i);
+  assert.match(sql, /when\s+'X Umar Bin Khattab'\s+then\s+2/i);
+  assert.match(sql, /when\s+'XI Utsmaniyyah'\s+then\s+3/i);
+  assert.match(sql, /when\s+'XII Abbasiyah'\s+then\s+4/i);
+  assert.match(sql, /260000\s*\+\s*r\.seq/i);
+  assert.match(sql, /return\s+116/i);
 });
 
 test("public repository migration never contains initial student names or plaintext PINs", () => {
