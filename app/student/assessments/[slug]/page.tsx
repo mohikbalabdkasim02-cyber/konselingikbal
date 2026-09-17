@@ -7,6 +7,7 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getAssessmentDefinition } from "@/lib/assessments/registry";
 import { evaluateAssessment } from "@/lib/assessments/evaluate";
+import { deriveActionPlan, deriveConsultation } from "@/lib/assessments/actions";
 import type { AssessmentAnswers } from "@/lib/assessments/types";
 import { AssessmentWizard } from "@/components/assessments/AssessmentWizard";
 import { ErrorCard } from "@/components/common/ErrorCard";
@@ -28,13 +29,11 @@ export default function StudentAssessmentPage() {
   useEffect(() => { void bootstrap(); }, [slug]);
 
   async function bootstrap() {
-    setLoading(true);
-    setError("");
+    setLoading(true); setError("");
     try {
       if (!definition) throw new Error("Asesmen tidak ditemukan.");
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) { router.replace("/"); return; }
-
+      if (!sessionData.session) { router.replace("/student/login"); return; }
       const userId = sessionData.session.user.id;
       const { data: link, error: linkError } = await supabase.from("student_auth_links").select("student_id").eq("auth_user_id", userId).maybeSingle();
       if (linkError) throw linkError;
@@ -47,19 +46,14 @@ export default function StudentAssessmentPage() {
 
       const { data: attempt, error: attemptError } = await supabase.from("assessment_attempts").select("id,status").eq("student_id", link.student_id).eq("definition_id", catalog.id).in("status", ["draft","submitted"]).order("started_at", { ascending: false }).limit(1).maybeSingle();
       if (attemptError) throw attemptError;
-
       if (attempt?.id) {
-        setAttemptId(attempt.id);
-        setSubmitted(attempt.status === "submitted");
+        setAttemptId(attempt.id); setSubmitted(attempt.status === "submitted");
         const { data: rows, error: answerError } = await supabase.from("assessment_answers").select("item_key,value").eq("attempt_id", attempt.id);
         if (answerError) throw answerError;
         setAnswers(Object.fromEntries((rows ?? []).map((row) => [row.item_key, row.value])));
       }
-    } catch (err) {
-      setError(toUserMessage(err));
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError(toUserMessage(err)); }
+    finally { setLoading(false); }
   }
 
   async function ensureAttempt() {
@@ -67,25 +61,15 @@ export default function StudentAssessmentPage() {
     if (!studentId || !definitionId) throw new Error("Data asesmen belum siap.");
     const { data, error: createError } = await supabase.from("assessment_attempts").insert({ student_id: studentId, definition_id: definitionId, status: "draft" }).select("id").single();
     if (createError) throw createError;
-    setAttemptId(data.id);
-    return data.id as string;
+    setAttemptId(data.id); return data.id as string;
   }
 
   async function persistAnswers(nextAnswers: AssessmentAnswers) {
     const id = await ensureAttempt();
     const itemMap = new Map(definition?.sections.flatMap((section) => section.items).map((item) => [item.id, item]) ?? []);
-    const rows = Object.entries(nextAnswers).map(([itemKey, value]) => ({
-      attempt_id: id,
-      item_key: itemKey,
-      value,
-      sensitive: itemMap.get(itemKey)?.sensitive ?? false,
-      updated_at: new Date().toISOString(),
-    }));
-    if (rows.length) {
-      const { error: answerError } = await supabase.from("assessment_answers").upsert(rows, { onConflict: "attempt_id,item_key" });
-      if (answerError) throw answerError;
-    }
-    await supabase.from("assessment_attempts").update({ updated_at: new Date().toISOString() }).eq("id", id);
+    const rows = Object.entries(nextAnswers).map(([itemKey, value]) => ({ attempt_id:id, item_key:itemKey, value, sensitive:itemMap.get(itemKey)?.sensitive ?? false, updated_at:new Date().toISOString() }));
+    if (rows.length) { const { error: answerError } = await supabase.from("assessment_answers").upsert(rows, { onConflict:"attempt_id,item_key" }); if (answerError) throw answerError; }
+    const { error: touchError } = await supabase.from("assessment_attempts").update({ updated_at:new Date().toISOString() }).eq("id", id); if (touchError) throw touchError;
     setAnswers(nextAnswers);
   }
 
@@ -103,41 +87,37 @@ export default function StudentAssessmentPage() {
       await persistAnswers(nextAnswers);
       const id = await ensureAttempt();
       const evaluation = evaluateAssessment(definition, nextAnswers);
-      const { error: resultError } = await supabase.from("assessment_results").upsert({
-        attempt_id: id,
-        domain: definition.domain,
-        summary: { completedItems: evaluation.completedItems, totalItems: evaluation.totalItems },
-        progress: evaluation.sectionProgress,
-        calculated_at: new Date().toISOString(),
-      }, { onConflict: "attempt_id" });
+      const { error: resultError } = await supabase.from("assessment_results").upsert({ attempt_id:id, domain:definition.domain, summary:{ completedItems:evaluation.completedItems, totalItems:evaluation.totalItems }, progress:evaluation.sectionProgress, calculated_at:new Date().toISOString() }, { onConflict:"attempt_id" });
       if (resultError) throw resultError;
 
       if (evaluation.signals.length) {
-        const { error: signalError } = await supabase.from("need_signals").insert(evaluation.signals.map((signal) => ({
-          student_id: studentId,
-          source_attempt_id: id,
-          domain: definition.domain,
-          kind: signal.kind,
-          severity: signal.severity,
-          private: signal.private,
-        })));
+        const { error: signalError } = await supabase.from("need_signals").insert(evaluation.signals.map((signal) => ({ student_id:studentId, source_attempt_id:id, domain:definition.domain, kind:signal.kind, severity:signal.severity, private:true, status:"open" })));
         if (signalError) throw signalError;
       }
 
-      const { error: attemptError } = await supabase.from("assessment_attempts").update({ status: "submitted", submitted_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", id);
+      const plan = deriveActionPlan(definition, nextAnswers);
+      if (plan) {
+        const { error: planError } = await supabase.from("assessment_action_plans").insert({ student_id:studentId, source_attempt_id:id, ...plan });
+        if (planError) throw planError;
+      }
+
+      const consultation = deriveConsultation(evaluation.signals);
+      if (consultation) {
+        const { error: requestError } = await supabase.from("consultation_requests").insert({ student_id:studentId, source_attempt_id:id, domain:definition.domain, urgency:consultation.urgency, note:consultation.note, status:"requested" });
+        if (requestError) throw requestError;
+      }
+
+      const { error: attemptError } = await supabase.from("assessment_attempts").update({ status:"submitted", submitted_at:new Date().toISOString(), updated_at:new Date().toISOString() }).eq("id", id);
       if (attemptError) throw attemptError;
       setSubmitted(true);
-    } catch (err) {
-      setError(toUserMessage(err));
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { setError(toUserMessage(err)); }
+    finally { setSaving(false); }
   }
 
   if (loading) return <main className="center-screen"><div className="loader"/></main>;
   if (!definition) return <main className="assessment-page"><ErrorCard message="Asesmen tidak ditemukan."/></main>;
   if (error && !studentId) return <main className="assessment-page"><div className="assessment-shell"><ErrorCard message={error} onRetry={bootstrap}/></div></main>;
-  if (submitted) return <main className="assessment-page"><section className="assessment-shell"><div className="assessment-section-card"><div className="assessment-section-head"><span><ShieldCheck size={18}/></span><div><h2>Asesmen sudah terkirim</h2><p>Jawaban Anda sudah tersimpan. Hasil digunakan sebagai bahan refleksi dan pendampingan, bukan label atau diagnosis.</p></div></div><div className="assessment-actions"><Link href="/student" className="assessment-primary" style={{textDecoration:'none',padding:'11px 14px',borderRadius:13,display:'inline-flex',alignItems:'center',gap:7}}><ArrowLeft size={16}/> Kembali ke Beranda</Link></div></div></section></main>;
+  if (submitted) return <main className="assessment-page"><section className="assessment-shell"><div className="assessment-section-card"><div className="assessment-section-head"><span><ShieldCheck size={18}/></span><div><h2>Asesmen sudah terkirim</h2><p>Jawaban sudah tersimpan. Jika Anda membuat Action Plan atau meminta bantuan, sistem juga menghubungkannya ke tindak lanjut Guru BK. Hasil digunakan untuk refleksi dan pendampingan, bukan label atau diagnosis.</p></div></div><div className="assessment-actions"><Link href="/student" className="assessment-primary" style={{textDecoration:"none",padding:"11px 14px",borderRadius:13,display:"inline-flex",alignItems:"center",gap:7}}><ArrowLeft size={16}/> Kembali ke Beranda</Link></div></div></section></main>;
 
   return <main className="assessment-page"><div className="assessment-shell" style={{marginBottom:12}}><Link href="/student" className="back-link"><ArrowLeft size={17}/> Beranda siswa</Link>{error && <div style={{marginTop:12}}><ErrorCard message={error}/></div>}</div><AssessmentWizard definition={definition} initialAnswers={answers} saving={saving} onSave={saveDraft} onSubmit={submit}/></main>;
 }
