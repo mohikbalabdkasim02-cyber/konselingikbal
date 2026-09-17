@@ -21,5 +21,9 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
+      - name: Verify Supabase V2 schema
+        run: node scripts/verify-supabase-schema.mjs
+      - name: Unit tests
+        run: npm test
       - name: Build
         run: npm run build
