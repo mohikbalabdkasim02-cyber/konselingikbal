@@ -4,6 +4,7 @@ import "./globals.css";
 import "./smart.css";
 import "./bk-v2.css";
 import "./student-plan.css";
+import "./career-v2.css";
 
 export const metadata: Metadata = {
   title: "Bina Insan LifeMap",
