@@ -29,6 +29,15 @@ test("stage 1 hashes PINs with pgcrypto and exposes staff-only reset foundation"
   assert.match(sql, /PIN_FORMAT_INVALID/);
 });
 
+test("stage 1 provides a staff-only bulk seed function that requires exactly 116 assignments", () => {
+  const sql = migrationSql();
+  assert.match(sql, /create or replace function public\.seed_initial_student_pins/i);
+  assert.match(sql, /jsonb_array_length\(p_assignments\)\s*<>\s*116/i);
+  assert.match(sql, /PIN_ASSIGNMENT_COUNT_INVALID/);
+  assert.match(sql, /PIN_DUPLICATE/);
+  assert.match(sql, /STUDENT_MAPPING_NOT_FOUND/);
+});
+
 test("public repository migration never contains initial student names or plaintext PINs", () => {
   const sql = migrationSql();
   assert.doesNotMatch(sql, /260001|260024|260116/);
