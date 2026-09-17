@@ -5,29 +5,32 @@ import path from "node:path";
 
 const migrationPath = path.join(process.cwd(), "supabase/migrations/202609170008_student_pin_access.sql");
 
-test("stage 1 migration contains exactly 116 unique initial PIN mappings", () => {
+function migrationSql() {
   assert.equal(fs.existsSync(migrationPath), true, "student PIN migration must exist");
-  const sql = fs.readFileSync(migrationPath, "utf8");
-  const pins = [...sql.matchAll(/'((?:260)\d{3})'/g)].map((match) => match[1]);
-  const rosterPins = pins.filter((pin) => Number(pin) >= 260001 && Number(pin) <= 260116);
-  assert.equal(rosterPins.length, 116);
-  assert.equal(new Set(rosterPins).size, 116);
-  assert.equal(rosterPins[0], "260001");
-  assert.equal(rosterPins.at(-1), "260116");
-});
+  return fs.readFileSync(migrationPath, "utf8");
+}
 
-test("stage 1 migration preserves agreed control mappings", () => {
-  assert.equal(fs.existsSync(migrationPath), true, "student PIN migration must exist");
-  const sql = fs.readFileSync(migrationPath, "utf8");
-  assert.match(sql, /'X Abu Bakar',\s*'Oryza Rizqiqah Azzahra',\s*'260024'/);
-  assert.match(sql, /'X Umar Bin Khattab',\s*'Abid Khalish',\s*'260028'/);
-  assert.match(sql, /'XI Utsmaniyyah',\s*'Aisyah Afiqah Inaswaty',\s*'260053'/);
-  assert.match(sql, /'XII Abbasiyah',\s*'Abdul Hafiiz',\s*'260089'/);
-});
-
-test("stage 1 migration stores PINs as bcrypt hashes, not plaintext credentials", () => {
-  assert.equal(fs.existsSync(migrationPath), true, "student PIN migration must exist");
-  const sql = fs.readFileSync(migrationPath, "utf8");
-  assert.match(sql, /crypt\(.*gen_salt\('bf'/s);
+test("stage 1 creates a dedicated student credential table with lock metadata", () => {
+  const sql = migrationSql();
+  assert.match(sql, /create table if not exists public\.student_access_credentials/i);
+  assert.match(sql, /student_id\s+uuid\s+primary key/i);
   assert.match(sql, /pin_hash\s+text\s+not\s+null/i);
+  assert.match(sql, /failed_attempts\s+integer/i);
+  assert.match(sql, /locked_until\s+timestamptz/i);
+  assert.match(sql, /last_login_at\s+timestamptz/i);
+  assert.match(sql, /is_active\s+boolean/i);
+});
+
+test("stage 1 hashes PINs with pgcrypto and exposes staff-only reset foundation", () => {
+  const sql = migrationSql();
+  assert.match(sql, /crypt\(.*gen_salt\('bf'/s);
+  assert.match(sql, /create or replace function public\.set_student_pin/i);
+  assert.match(sql, /assessment_is_staff\(\)/i);
+  assert.match(sql, /PIN_FORMAT_INVALID/);
+});
+
+test("public repository migration never contains initial student names or plaintext PINs", () => {
+  const sql = migrationSql();
+  assert.doesNotMatch(sql, /260001|260024|260116/);
+  assert.doesNotMatch(sql, /Oryza Rizqiqah Azzahra|Abid Khalish|Aisyah Afiqah Inaswaty|Abdul Hafiiz/);
 });
