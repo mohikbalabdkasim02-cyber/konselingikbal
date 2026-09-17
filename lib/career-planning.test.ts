@@ -39,16 +39,17 @@ test("toCareerChoicePayloads trims content and omits empty plans", () => {
   assert.equal(payloads[1].reason, null);
 });
 
-test("toggleComparisonSelection limits compare mode to three unique careers", () => {
+test("toggleComparisonSelection limits compare mode to four unique careers", () => {
   let selected: string[] = [];
   selected = toggleComparisonSelection(selected, "a");
   selected = toggleComparisonSelection(selected, "b");
   selected = toggleComparisonSelection(selected, "c");
   selected = toggleComparisonSelection(selected, "d");
-  assert.deepEqual(selected, ["a", "b", "c"]);
+  selected = toggleComparisonSelection(selected, "e");
+  assert.deepEqual(selected, ["a", "b", "c", "d"]);
 
   selected = toggleComparisonSelection(selected, "b");
-  assert.deepEqual(selected, ["a", "c"]);
+  assert.deepEqual(selected, ["a", "c", "d"]);
 });
 
 test("portfolioItemIsMeaningful requires a non-empty title", () => {
