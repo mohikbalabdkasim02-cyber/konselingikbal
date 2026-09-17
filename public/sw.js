@@ -1,5 +1,12 @@
-const CACHE_NAME = "bina-insan-lifemap-shell-v1";
-const APP_SHELL = ["/offline", "/brand/bina-insan-logo.svg", "/icons/icon.svg"];
+const CACHE_NAME = "bina-insan-lifemap-shell-v2";
+const APP_SHELL = [
+  "/offline",
+  "/brand/bina-insan-logo.svg",
+  "/icons/icon.svg",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+  "/icons/apple-touch-icon.png",
+];
 const STATIC_PREFIXES = ["/brand/", "/icons/", "/_next/static/"];
 
 self.addEventListener("install", (event) => {
@@ -23,11 +30,14 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  // Authenticated and sensitive navigations always go to network.
+  // The only cached navigation response is the static /offline fallback.
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).catch(() => caches.match("/offline")));
     return;
   }
 
+  // Cache only versioned framework files and public branding/icon assets.
   if (!STATIC_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) return;
 
   event.respondWith(
