@@ -13,6 +13,12 @@ type RosterRow = {
   class_order: number;
 };
 
+type VerifyRow = {
+  ok: boolean;
+  code: string;
+  student_id: string;
+};
+
 export default function StudentLoginPage() {
   const router = useRouter();
   const [roster, setRoster] = useState<RosterRow[]>([]);
@@ -69,8 +75,44 @@ export default function StudentLoginPage() {
 
   function loginMessage(code?: string) {
     if (code === "LOCKED") return "Terlalu banyak percobaan PIN. Tunggu 15 menit atau hubungi Guru BK.";
+    if (code === "SESSION_ALREADY_LINKED") return "Sesi ini sudah terhubung ke siswa lain. Keluar dari Student Portal lalu coba lagi.";
+    if (code === "AUTH_REQUIRED") return "Sesi siswa belum aktif. Muat ulang halaman lalu coba lagi.";
     if (code === "INVALID") return "Nama atau PIN belum benar. Periksa kembali PIN 6 digitmu.";
     return "Login siswa belum dapat diproses. Coba lagi atau hubungi Guru BK.";
+  }
+
+  async function ensureAnonymousSession() {
+    const { data: current } = await supabase.auth.getSession();
+    const currentUser = current.session?.user;
+
+    if (currentUser) {
+      const { data: existingLink } = await supabase
+        .from("student_auth_links")
+        .select("student_id")
+        .eq("auth_user_id", currentUser.id)
+        .maybeSingle();
+
+      if (existingLink?.student_id) {
+        router.replace("/student");
+        return false;
+      }
+
+      if (!currentUser.is_anonymous) {
+        throw new Error("Akun Guru BK sedang aktif di browser ini. Gunakan perangkat/tab siswa yang tidak sedang login sebagai Guru BK.");
+      }
+
+      return true;
+    }
+
+    const { error } = await supabase.auth.signInAnonymously();
+    if (error) {
+      const detail = error.message?.toLowerCase() ?? "";
+      if (detail.includes("anonymous") || detail.includes("disabled")) {
+        throw new Error("Akses siswa belum aktif di server. Hubungi Guru BK untuk mengaktifkan login siswa.");
+      }
+      throw error;
+    }
+    return true;
   }
 
   async function signIn(event: FormEvent) {
@@ -82,27 +124,21 @@ export default function StudentLoginPage() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("student-pin-login", {
-        body: { student_id: studentId, pin },
+      const ready = await ensureAnonymousSession();
+      if (!ready) return;
+
+      const { data, error } = await supabase.rpc("verify_student_pin_login", {
+        p_student_id: studentId,
+        p_pin: pin,
       });
+      if (error) throw error;
 
-      if (error) {
-        let code = "";
-        try {
-          const context = (error as unknown as { context?: Response }).context;
-          if (context) code = (await context.clone().json())?.code ?? "";
-        } catch { /* use generic message */ }
-        throw new Error(loginMessage(code));
-      }
+      const verify = (Array.isArray(data) ? data[0] : data) as VerifyRow | null;
+      if (!verify?.ok) throw new Error(loginMessage(verify?.code));
 
-      if (!data?.access_token || !data?.refresh_token) throw new Error(loginMessage(data?.code));
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-      });
-      if (sessionError) throw sessionError;
-
+      setPin("");
       router.replace("/student");
+      router.refresh();
     } catch (error) {
       setMessage(toUserMessage(error));
     } finally {
