@@ -43,6 +43,11 @@ test("stage 1 provides a one-click initializer for exactly 116 active students",
   assert.match(sql, /return\s+116/i);
 });
 
+test("stage 1 removes the superseded JSON seed RPC", () => {
+  const sql = migrationSql();
+  assert.match(sql, /drop function if exists public\.seed_initial_student_pins\(jsonb\)/i);
+});
+
 test("public repository migration never contains initial student names or plaintext PINs", () => {
   const sql = migrationSql();
   assert.doesNotMatch(sql, /260001|260024|260116/);
