@@ -322,7 +322,7 @@ export default function HomePage() {
                 <div className="stage62-attention-item"><span>Request bicara dengan Guru BK</span><strong>{openRequests}</strong></div>
                 <div className="stage62-attention-item"><span>Action Plan masih aktif</span><strong>{activePlans}</strong></div>
                 <div className="stage62-attention-item"><span>Proposal masuk</span><strong>{proposalCount}</strong></div>
-                <div className="stage62-attention-item"><span>LifeMap mulai dipetakan</span><strong>{mapped}</strong></div>
+                <div className="stage62-attention-item"><span>Sudah dipetakan</span><strong>{mapped}</strong></div>
               </div>
               <div className="stage62-mini-note">Gunakan angka ini sebagai pintu masuk monitoring. Detail sensitif tetap dibuka hanya pada ruang review siswa individual.</div>
             </aside>
