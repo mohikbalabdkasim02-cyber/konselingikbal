@@ -175,4 +175,4 @@ comment on table public.student_access_credentials is
 comment on function public.set_student_pin(uuid, text) is
   'Staff-only PIN set/reset function. Accepts a 6-digit PIN and stores only a bcrypt hash.';
 comment on function public.initialize_student_pins() is
-  'Staff-only one-click initializer for the verified 116 active students. Generates the agreed 260001-260116 sequence server-side and stores only bcrypt hashes.';
+  'Staff-only one-click initializer for the verified active-student roster. Generates the agreed six-digit sequence server-side and stores only bcrypt hashes.';
