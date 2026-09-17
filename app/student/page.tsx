@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookOpenCheck, BriefcaseBusiness, ChevronRight, LogOut, ShieldCheck, Sparkles, Target, UsersRound } from "lucide-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { supabase } from "@/lib/supabase";
 import { toUserMessage } from "@/lib/errors";
 import { ErrorCard } from "@/components/common/ErrorCard";
@@ -145,8 +146,13 @@ export default function StudentHomePage() {
   if (loading) return <main className="center-screen"><div className="loader"/></main>;
   if (!student) return <main className="assessment-page"><div className="assessment-shell"><ErrorCard message={error || "Akun siswa belum tersedia."} onRetry={load}/></div></main>;
 
-  return <main className="assessment-page"><section className="assessment-shell">
-    <div className="student-portal-head"><div><p className="eyebrow">BINA INSAN • STUDENT PORTAL</p><h1>Assalamu’alaikum, {student.full_name.split(" ")[0]}</h1><p>{student.full_name} · {student.classes?.name ?? "Kelas belum tersedia"}</p></div><button className="icon-btn" onClick={async()=>{await supabase.auth.signOut();router.replace('/student/login')}} title="Keluar"><LogOut size={18}/></button></div>
+  return <main className="assessment-page student-portal-stage61"><section className="assessment-shell student-portal-stage61-shell">
+    <div className="student-portal-brandbar">
+      <div className="student-portal-brandbar-identity"><BrandLogo compact/><div><strong>Bina Insan LifeMap</strong><span>Portal Siswa</span></div></div>
+      <button className="student-portal-logout" onClick={async()=>{await supabase.auth.signOut();router.replace('/student/login')}} title="Keluar dari Portal Siswa"><LogOut size={18}/><span>Keluar</span></button>
+    </div>
+
+    <div className="student-portal-head stage61-student-hero"><div><p className="eyebrow">BINA INSAN • STUDENT PORTAL</p><h1>Assalamu’alaikum, {student.full_name.split(" ")[0]}</h1><p>{student.full_name} · {student.classes?.name ?? "Kelas belum tersedia"}</p></div><div className="stage61-student-hero-badge">Ruang perkembanganmu</div></div>
     <div className="student-portal-notice"><ShieldCheck size={19}/><div><strong>Ruang refleksi pribadi</strong><span>Jawaban asesmen digunakan untuk pendampingan BK sesuai kewenangan, bukan untuk memberi label.</span></div></div>
     {error && <div style={{marginBottom:14}}><ErrorCard message={error} onRetry={load}/></div>}
 
