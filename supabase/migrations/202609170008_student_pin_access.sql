@@ -89,6 +89,7 @@ end;
 $$;
 
 revoke all on function public.set_student_pin(uuid, text) from public;
+revoke execute on function public.set_student_pin(uuid, text) from anon;
 grant execute on function public.set_student_pin(uuid, text) to authenticated;
 
 drop function if exists public.seed_initial_student_pins(jsonb);
@@ -170,6 +171,7 @@ end;
 $$;
 
 revoke all on function public.initialize_student_pins() from public;
+revoke execute on function public.initialize_student_pins() from anon;
 grant execute on function public.initialize_student_pins() to authenticated;
 
 comment on table public.student_access_credentials is
