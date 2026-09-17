@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./smart.css";
+import "./bk-v2.css";
 
 export const metadata: Metadata = {
   title: "Bina Insan LifeMap",
