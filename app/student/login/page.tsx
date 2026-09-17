@@ -110,14 +110,23 @@ export default function StudentLoginPage() {
       return true;
     }
 
-    const { error } = await supabase.auth.signInAnonymously();
+    const { data, error } = await supabase.auth.signInAnonymously();
+
     if (error) {
-      const detail = error.message?.toLowerCase() ?? "";
-      if (detail.includes("anonymous") || detail.includes("disabled")) {
-        throw new Error("Akses siswa belum aktif di server. Hubungi Guru BK untuk mengaktifkan login siswa.");
-      }
-      throw error;
+      console.error("STUDENT_ANON_SIGNIN_FAILED", {
+        name: error.name,
+        message: error.message,
+        status: "status" in error ? error.status : undefined,
+        code: "code" in error ? error.code : undefined,
+      });
+      throw new Error(`Anonymous sign-in gagal: ${error.message}`);
     }
+
+    console.info("STUDENT_ANON_SIGNIN_OK", {
+      userId: data.user?.id ?? null,
+      isAnonymous: data.user?.is_anonymous ?? null,
+    });
+
     return true;
   }
 
