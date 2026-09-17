@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookOpenCheck, ChevronRight, LogOut, ShieldCheck, Sparkles, Target, UsersRound } from "lucide-react";
+import { BookOpenCheck, BriefcaseBusiness, ChevronRight, LogOut, ShieldCheck, Sparkles, Target, UsersRound } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toUserMessage } from "@/lib/errors";
 import { ErrorCard } from "@/components/common/ErrorCard";
@@ -38,8 +38,8 @@ export default function StudentHomePage() {
       <Link href="/student/assessments/pribadi" className="student-portal-card"><div className="student-portal-icon"><Sparkles size={21}/></div><div><span>ASESMEN PRIBADI</span><h2>Bimbingan Pribadi</h2><p>Kenali diri, emosi, kebiasaan, kebutuhan dukungan, dan susun Personal Action Plan 14 hari.</p></div><ChevronRight size={19}/></Link>
       <Link href="/student/assessments/belajar" className="student-portal-card"><div className="student-portal-icon"><BookOpenCheck size={21}/></div><div><span>ASESMEN BELAJAR</span><h2>Bimbingan Belajar</h2><p>Masalah belajar, penyebab, dampak, kebiasaan belajar, tekanan akademik, dan Learning Action Plan 14 hari.</p></div><ChevronRight size={19}/></Link>
       <Link href="/student/assessments/sosial" className="student-portal-card"><div className="student-portal-icon"><UsersRound size={21}/></div><div><span>ASESMEN SOSIAL</span><h2>Bimbingan Sosial</h2><p>Sekolah, kelas, guru, teman, batas sehat, triase keselamatan, dan Social Action Plan 7–14 hari.</p></div><ChevronRight size={19}/></Link>
+      <Link href="/student/career" className="student-portal-card"><div className="student-portal-icon"><BriefcaseBusiness size={21}/></div><div><span>BK KARIER</span><h2>Karier & LifeMap</h2><p>Kenali diri, Career 360°, bandingkan pilihan, Plan A/B/C, portofolio, roadmap, dan tindak lanjut.</p></div><ChevronRight size={19}/></Link>
       <Link href="/student/action-plan" className="student-portal-card"><div className="student-portal-icon"><Target size={21}/></div><div><span>RENCANA SAYA</span><h2>Action Plan & Progres</h2><p>Lihat langkah yang sudah disepakati, catat refleksi perkembangan, dan tandai target yang sudah selesai.</p></div><ChevronRight size={19}/></Link>
-      <div className="student-portal-card disabled"><div className="student-portal-icon"><BookOpenCheck size={21}/></div><div><span>BK KARIER</span><h2>Karier & LifeMap</h2><p>Proposal Hidup, eksplorasi karier, Plan A/B/C, roadmap, dan portofolio tetap dipertahankan dan akan diperluas.</p></div></div>
     </div>
   </section></main>;
 }
