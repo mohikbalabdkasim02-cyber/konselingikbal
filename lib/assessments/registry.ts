@@ -1,7 +1,13 @@
 import type { AssessmentDefinition } from "./types";
 import { personalAssessmentV1 } from "./personal";
+import { learningAssessmentV1 } from "./learning";
+import { socialAssessmentV1 } from "./social";
 
-const definitions: AssessmentDefinition[] = [personalAssessmentV1];
+const definitions: AssessmentDefinition[] = [
+  personalAssessmentV1,
+  learningAssessmentV1,
+  socialAssessmentV1,
+];
 
 export function getAssessmentDefinition(slug: string, version?: number) {
   const candidates = definitions.filter((item) => item.slug === slug);
