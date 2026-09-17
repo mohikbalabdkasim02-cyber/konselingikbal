@@ -1,0 +1,140 @@
+/* Final Stage 6 polish. This file intentionally contains visual overrides only. */
+
+/* Keep the supplied school identity in full colour everywhere. */
+.stage6-login-brand{
+  background:#ffffff;
+  color:var(--stage6-ink);
+  border-right:1px solid var(--stage6-line);
+}
+.stage6-login-brand .brand-logo{
+  width:270px;
+  filter:none;
+  opacity:1;
+}
+.stage6-login-message h1{color:var(--stage6-navy)}
+.stage6-login-message p{color:var(--stage6-muted)}
+.stage6-login-note{color:#7d909c}
+
+/* Student 360: reduce visual noise and make the reading hierarchy obvious. */
+.student-workspace-page{background:var(--stage6-bg)!important}
+.student-workspace-topbar{
+  min-height:78px!important;
+  background:#fff!important;
+  border-bottom:1px solid var(--stage6-line)!important;
+  box-shadow:0 6px 22px rgba(8,62,89,.035)!important;
+}
+.student-hero{
+  padding-top:30px!important;
+  padding-bottom:22px!important;
+}
+.student-identity h1{
+  color:var(--stage6-navy)!important;
+  font-size:clamp(28px,3.2vw,40px)!important;
+  letter-spacing:-.035em!important;
+}
+.big-avatar{
+  width:72px!important;
+  height:72px!important;
+  border-radius:20px!important;
+  background:var(--stage6-navy)!important;
+  color:#fff!important;
+}
+.journey-strip{
+  border-color:var(--stage6-line)!important;
+  border-radius:18px!important;
+  box-shadow:none!important;
+  background:#fff!important;
+}
+.journey-node span{border-radius:10px!important}
+.journey-node.done span{background:#e9f4f7!important;color:var(--stage6-navy)!important}
+.journey-node.done strong{color:var(--stage6-navy)!important}
+.workspace-tabs{
+  border-radius:15px!important;
+  gap:4px!important;
+  scrollbar-width:thin;
+}
+.workspace-tabs button{
+  font-size:13px!important;
+  min-height:40px!important;
+  color:#71838e!important;
+}
+.workspace-tabs button.active{background:var(--stage6-navy)!important;color:#fff!important}
+.workspace-grid{gap:16px!important}
+.workspace-card,.life-map-card,.version-panel{
+  border-color:var(--stage6-line)!important;
+  border-radius:20px!important;
+  box-shadow:0 8px 24px rgba(8,62,89,.035)!important;
+}
+.card-title h2{color:var(--stage6-navy)!important}
+.profile-field input,.profile-field select,.quick-add input,.life-aspect textarea{
+  background:#fff!important;
+  border-color:var(--stage6-line)!important;
+}
+.life-aspect{
+  background:#fff!important;
+  border-color:var(--stage6-line)!important;
+  border-radius:16px!important;
+}
+.life-aspect.filled{background:#fbfdfd!important;border-color:#b8d9df!important}
+.aspect-index,.roadmap-number{background:#edf5f7!important;color:var(--stage6-navy)!important}
+
+/* Existing student portal / assessment cards: larger targets and calmer surfaces. */
+.student-portal-page,.assessment-page,.career-page{
+  background:var(--stage6-bg)!important;
+}
+.student-portal-page main,.assessment-page main{
+  max-width:1180px;
+  margin-inline:auto;
+}
+.student-portal-page button,.student-portal-page a,
+.assessment-page button,.assessment-page a{
+  min-height:44px;
+}
+.assessment-card,.assessment-section,.assessment-result-card,.action-plan-card,
+.career-card,.career-panel{
+  border-color:var(--stage6-line)!important;
+  border-radius:18px!important;
+  box-shadow:none!important;
+}
+
+/* BK surfaces: preserve privacy-focused information density without dashboard clutter. */
+.bk-page,.bk-shell,.bk-dashboard,.counseling-page{
+  background:var(--stage6-bg)!important;
+}
+.bk-card,.bk-panel,.bk-stat,.request-card,.queue-card{
+  border-color:var(--stage6-line)!important;
+  border-radius:18px!important;
+  box-shadow:none!important;
+}
+.bk-card h2,.bk-panel h2,.request-card h2{color:var(--stage6-navy)!important}
+
+/* Legacy drawer keeps the same information, but reads more like a profile sheet. */
+.drawer-backdrop{background:rgba(7,35,51,.34)!important}
+.student-drawer{box-shadow:-18px 0 46px rgba(7,35,51,.14)!important}
+.drawer-avatar{border-radius:18px!important;background:#edf5f7!important;color:var(--stage6-navy)!important}
+.detail-item{border-color:var(--stage6-line)!important;background:#fff!important}
+.open-profile-btn{background:var(--stage6-navy)!important;box-shadow:none!important}
+
+/* Keep status semantics muted; avoid turning sensitive support needs into alarming UI. */
+.auth-message{border-color:#ead8a7!important;background:#fff9e9!important;color:#665628!important}
+.status-pill{background:#edf5f7!important;color:var(--stage6-navy)!important}
+
+@media (max-width:900px){
+  .stage6-login-brand{
+    border-right:0;
+    border-bottom:1px solid var(--stage6-line);
+  }
+  .stage6-login-brand .brand-logo{width:210px}
+  .student-workspace-topbar{min-height:66px!important}
+  .student-hero{align-items:flex-start!important}
+  .workspace-grid,.proposal-layout{grid-template-columns:1fr!important}
+  .life-aspect-grid{grid-template-columns:1fr!important}
+}
+
+@media (max-width:620px){
+  .student-hero{padding:22px 16px 18px!important}
+  .student-identity{align-items:flex-start!important;gap:12px!important}
+  .big-avatar{width:56px!important;height:56px!important;border-radius:16px!important}
+  .workspace-card{padding:17px!important;border-radius:17px!important}
+  .journey-strip{overflow-x:auto!important;grid-template-columns:repeat(6,minmax(130px,1fr))!important}
+}
