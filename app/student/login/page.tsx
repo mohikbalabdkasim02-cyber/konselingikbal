@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { GraduationCap, LockKeyhole, Search, ShieldCheck, UserRound } from "lucide-react";
+import { LockKeyhole, Search, ShieldCheck, UserRound } from "lucide-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { supabase } from "@/lib/supabase";
 import { toUserMessage } from "@/lib/errors";
 
@@ -29,12 +31,14 @@ export default function StudentLoginPage() {
   const [loadingRoster, setLoadingRoster] = useState(true);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [staffSessionActive, setStaffSessionActive] = useState(false);
 
   useEffect(() => { void bootstrap(); }, []);
 
   async function bootstrap() {
     setLoadingRoster(true);
     setMessage("");
+    setStaffSessionActive(false);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData.session?.user;
@@ -48,6 +52,7 @@ export default function StudentLoginPage() {
           router.replace("/student");
           return;
         }
+        setStaffSessionActive(!user.is_anonymous);
       }
 
       const { data, error } = await supabase.rpc("student_login_roster");
@@ -98,7 +103,8 @@ export default function StudentLoginPage() {
       }
 
       if (!currentUser.is_anonymous) {
-        throw new Error("Akun Guru BK sedang aktif di browser ini. Gunakan perangkat/tab siswa yang tidak sedang login sebagai Guru BK.");
+        setStaffSessionActive(true);
+        throw new Error("Sesi Guru BK sedang aktif. Gunakan perangkat atau profil browser siswa agar data kedua peran tidak tercampur.");
       }
 
       return true;
@@ -118,6 +124,7 @@ export default function StudentLoginPage() {
   async function signIn(event: FormEvent) {
     event.preventDefault();
     setMessage("");
+    if (staffSessionActive) return;
     if (!className) { setMessage("Pilih kelas terlebih dahulu."); return; }
     if (!studentId) { setMessage("Pilih nama siswa terlebih dahulu."); return; }
     if (!/^\d{6}$/.test(pin)) { setMessage("PIN harus terdiri dari 6 angka."); return; }
@@ -146,39 +153,63 @@ export default function StudentLoginPage() {
     }
   }
 
-  return <main className="login-page student-login-page">
-    <section className="login-panel student-login-panel">
-      <div className="student-login-brand"><div className="brand-mark"><GraduationCap size={25}/></div><div><p className="eyebrow">BINA INSAN PALU</p><h1>Portal Asesmen Siswa</h1></div></div>
-      <p className="muted">Pilih kelas dan namamu, lalu masukkan PIN 6 digit yang diberikan Guru BK.</p>
-      <div className="student-login-note"><ShieldCheck size={18}/><span>Jawaban asesmen digunakan untuk pendampingan BK, bukan untuk memberi label atau ranking siswa.</span></div>
+  return <main className="student-login-stage61">
+    <section className="student-login-stage61-shell">
+      <header className="student-login-stage61-brand">
+        <BrandLogo compact className="student-login-stage61-logo" />
+        <div>
+          <p className="stage6-kicker">BINA INSAN LIFEMAP</p>
+          <h1>Portal Siswa</h1>
+          <p>Ruang pribadi untuk asesmen, Action Plan, BK Karier, dan perkembanganmu.</p>
+        </div>
+      </header>
 
-      <form onSubmit={signIn} className="login-form">
-        <label>Pilih kelas
-          <select value={className} onChange={(e)=>{setClassName(e.target.value);setStudentId("");setSearch("");}} disabled={loadingRoster || loading} required>
-            <option value="">Pilih kelas</option>
-            {classes.map((name)=><option key={name} value={name}>{name}</option>)}
-          </select>
-        </label>
+      <div className="student-login-stage61-card">
+        <div className="student-login-stage61-intro">
+          <div>
+            <span>AKSES SISWA</span>
+            <h2>Masuk dengan nama dan PIN</h2>
+            <p>Pilih kelas dan namamu, lalu masukkan PIN 6 digit yang diberikan Guru BK.</p>
+          </div>
+          <ShieldCheck size={24} aria-hidden="true" />
+        </div>
 
-        <label>Cari nama siswa
-          <div className="student-input-icon"><Search size={17}/><input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Ketik nama..." disabled={!className || loading}/></div>
-        </label>
+        <div className="student-login-privacy"><ShieldCheck size={17}/><span>Jawabanmu digunakan untuk pendampingan BK, bukan untuk memberi label atau ranking siswa.</span></div>
 
-        <label>Nama siswa
-          <div className="student-input-icon"><UserRound size={17}/><select value={studentId} onChange={(e)=>setStudentId(e.target.value)} disabled={!className || loading} required>
-            <option value="">Pilih nama</option>
-            {students.map((student)=><option key={student.student_id} value={student.student_id}>{student.full_name}</option>)}
-          </select></div>
-        </label>
+        <form onSubmit={signIn} className="student-login-form-stage61">
+          <label className="student-login-field">Pilih kelas
+            <div className="student-login-control student-login-control-select">
+              <select value={className} onChange={(e)=>{setClassName(e.target.value);setStudentId("");setSearch("");}} disabled={loadingRoster || loading} required>
+                <option value="">Pilih kelas</option>
+                {classes.map((name)=><option key={name} value={name}>{name}</option>)}
+              </select>
+            </div>
+          </label>
 
-        <label>PIN 6 angka
-          <div className="student-input-icon"><LockKeyhole size={17}/><input value={pin} onChange={(e)=>setPin(e.target.value.replace(/\D/g,"").slice(0,6))} inputMode="numeric" type="password" pattern="[0-9]{6}" maxLength={6} placeholder="••••••" autoComplete="one-time-code" required/></div>
-        </label>
+          <label className="student-login-field">Cari nama siswa
+            <div className="student-login-control"><Search size={18}/><input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Ketik nama siswa..." disabled={!className || loading}/></div>
+          </label>
 
-        <button className="primary-btn" disabled={loading || loadingRoster || !studentId}>{loading ? "Memproses..." : "Masuk ke Student Portal"}</button>
-      </form>
-      {loadingRoster && <p className="muted">Memuat daftar siswa...</p>}
-      {message && <p className="auth-message">{message}</p>}
+          <label className="student-login-field">Nama siswa
+            <div className="student-login-control student-login-control-select"><UserRound size={18}/><select value={studentId} onChange={(e)=>setStudentId(e.target.value)} disabled={!className || loading} required>
+              <option value="">Pilih nama</option>
+              {students.map((student)=><option key={student.student_id} value={student.student_id}>{student.full_name}</option>)}
+            </select></div>
+          </label>
+
+          <label className="student-login-field">PIN 6 angka
+            <div className="student-login-control"><LockKeyhole size={18}/><input value={pin} onChange={(e)=>setPin(e.target.value.replace(/\D/g,"").slice(0,6))} inputMode="numeric" type="password" pattern="[0-9]{6}" maxLength={6} placeholder="••••••" autoComplete="one-time-code" required/></div>
+          </label>
+
+          <button className="student-login-submit" disabled={loading || loadingRoster || !studentId || staffSessionActive}>{loading ? "Memproses..." : "Masuk ke Portal Siswa"}</button>
+        </form>
+
+        {loadingRoster && <p className="student-login-helper">Memuat daftar siswa...</p>}
+        {staffSessionActive && <div className="student-session-notice"><ShieldCheck size={19}/><div><strong>Mode Guru BK sedang aktif</strong><p>Untuk menjaga data kedua peran tetap terpisah, Portal Siswa dibuka dari perangkat atau profil browser yang tidak sedang login sebagai Guru BK.</p><Link href="/">Kembali ke dashboard Guru BK</Link></div></div>}
+        {message && !staffSessionActive && <p className="auth-message">{message}</p>}
+      </div>
+
+      <footer className="student-login-stage61-footer"><span>Bina Insan Palu High School</span><span>Student Development Platform</span></footer>
     </section>
   </main>;
 }
