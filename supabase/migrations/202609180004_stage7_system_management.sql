@@ -156,6 +156,8 @@ declare
   v_errors jsonb := '[]'::jsonb;
   v_index integer := 0;
   v_job_id uuid;
+  v_pin text;
+  v_generated_access jsonb := '[]'::jsonb;
 begin
   if not private.is_staff() then
     raise exception 'STAFF_REQUIRED';
@@ -267,6 +269,14 @@ begin
       )
       returning id into v_student_id;
       v_created := v_created + 1;
+
+      v_pin := lpad((floor(random()*900000)+100000)::int::text,6,'0');
+      insert into public.student_access_credentials(student_id,pin_hash,is_active,failed_attempts,locked_until,last_login_at,updated_at)
+      values(v_student_id,crypt(v_pin,gen_salt('bf',10)),true,0,null,null,now())
+      on conflict(student_id) do nothing;
+      v_generated_access := v_generated_access || jsonb_build_array(jsonb_build_object(
+        'student_id',v_student_id,'full_name',v_name,'class_name',v_class_name,'pin',v_pin
+      ));
     else
       update public.students
       set class_id=v_class_id,
@@ -279,6 +289,15 @@ begin
           updated_at=now()
       where id=v_student_id;
       v_updated := v_updated + 1;
+
+      if not exists(select 1 from public.student_access_credentials c where c.student_id=v_student_id) then
+        v_pin := lpad((floor(random()*900000)+100000)::int::text,6,'0');
+        insert into public.student_access_credentials(student_id,pin_hash,is_active,failed_attempts,locked_until,last_login_at,updated_at)
+        values(v_student_id,crypt(v_pin,gen_salt('bf',10)),true,0,null,null,now());
+        v_generated_access := v_generated_access || jsonb_build_array(jsonb_build_object(
+          'student_id',v_student_id,'full_name',v_name,'class_name',v_class_name,'pin',v_pin
+        ));
+      end if;
     end if;
 
     update public.student_enrollments
@@ -305,7 +324,8 @@ begin
     'created',v_created,
     'updated',v_updated,
     'skipped',v_skipped,
-    'errors',v_errors
+    'errors',v_errors,
+    'generated_access',v_generated_access
   );
 exception when others then
   if v_job_id is not null then
