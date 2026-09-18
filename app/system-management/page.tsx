@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toUserMessage } from "@/lib/errors";
-import { downloadStudentReportPdf, loadStudentReportBundle, loadGroupReportSummary, downloadGroupSummaryPdf } from "@/lib/student-report";
+import { downloadStudentReportPdf, loadStudentReportBundle, loadGroupReportSummary, downloadGroupSummaryPdf, loadComprehensiveGroupBundles, downloadComprehensiveGroupPdf } from "@/lib/student-report";
 import "./system-management.css";
 
 type Tab = "overview" | "students" | "classes" | "import" | "reports" | "settings";
@@ -108,6 +108,7 @@ export default function SystemManagementPage() {
   const [generatedAccess, setGeneratedAccess] = useState<GeneratedAccess[]>([]);
 
   const [reportClass, setReportClass] = useState("all");
+  const [reportMode, setReportMode] = useState<"summary"|"comprehensive">("summary");
   const [reporting, setReporting] = useState(false);
   const [reportProgress, setReportProgress] = useState("");
 
@@ -414,15 +415,22 @@ export default function SystemManagementPage() {
       ? students.filter((s) => s.is_active)
       : students.filter((s) => s.is_active && s.class_id === reportClass);
     if (!target.length) return setMessage("Tidak ada siswa pada pilihan laporan.");
-    setReporting(true); setMessage(""); setReportProgress(`Mengumpulkan ringkasan ${target.length} siswa...`);
+    setReporting(true); setMessage("");
     try {
-      const summary = await loadGroupReportSummary(supabase, target.map((s) => s.id));
-      const title = reportClass === "all"
-        ? "Laporan Ringkasan Seluruh Siswa"
-        : `Laporan Ringkasan Kelas ${classes.find((c) => c.id === reportClass)?.name ?? ""}`;
-      setReportProgress("Menyusun PDF...");
-      await downloadGroupSummaryPdf(summary, title, { footer: settings.report_footer });
-      setMessage("PDF laporan kelompok berhasil dibuat.");
+      const className = reportClass === "all" ? "Seluruh Siswa" : classes.find((c) => c.id === reportClass)?.name ?? "Kelas";
+      if (reportMode === "comprehensive") {
+        setReportProgress(`Mengumpulkan data lengkap ${target.length} siswa...`);
+        const bundles = await loadComprehensiveGroupBundles(supabase, target.map((s) => s.id));
+        setReportProgress("Menyusun PDF komprehensif...");
+        await downloadComprehensiveGroupPdf(bundles, `Laporan ${className}`, { footer: settings.report_footer, includeDetailedAnswers: true });
+        setMessage("PDF komprehensif kelompok berhasil dibuat.");
+      } else {
+        setReportProgress(`Mengumpulkan ringkasan ${target.length} siswa...`);
+        const summary = await loadGroupReportSummary(supabase, target.map((s) => s.id));
+        setReportProgress("Menyusun PDF ringkasan...");
+        await downloadGroupSummaryPdf(summary, `Laporan Ringkasan ${className}`, { footer: settings.report_footer });
+        setMessage("PDF ringkasan kelompok berhasil dibuat.");
+      }
     } catch (error) {
       setMessage(toUserMessage(error));
     } finally { setReporting(false); setReportProgress(""); }
@@ -575,7 +583,9 @@ export default function SystemManagementPage() {
             <div className="system-card-head"><div><span>LAPORAN KELOMPOK</span><h2>Kelas / seluruh sekolah</h2></div><Users size={22}/></div>
             <p className="system-copy">Ringkasan kelompok dibuat lebih aman untuk monitoring kelas: status asesmen, Action Plan, arah karier, konseling, dan follow-up. Jawaban sensitif tetap berada pada laporan individual.</p>
             <label className="system-report-select"><span>Cakupan laporan</span><select value={reportClass} onChange={(e) => setReportClass(e.target.value)}><option value="all">Seluruh siswa aktif</option>{activeClasses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-            <button className="system-primary wide" onClick={downloadGroupReport} disabled={reporting}><Download size={16}/>{reporting ? "Menyiapkan..." : "Download PDF Kelompok"}</button>
+            <label className="system-report-select"><span>Jenis laporan</span><select value={reportMode} onChange={(e) => setReportMode(e.target.value as "summary"|"comprehensive")}><option value="summary">Ringkasan monitoring</option><option value="comprehensive">Komprehensif + jawaban asesmen per soal</option></select></label>
+            {reportMode==="comprehensive"&&<p className="system-report-warning">Mode komprehensif dapat menghasilkan PDF yang sangat panjang, terutama jika memilih seluruh siswa.</p>}
+            <button className="system-primary wide" onClick={downloadGroupReport} disabled={reporting}><Download size={16}/>{reporting ? "Menyiapkan..." : reportMode==="comprehensive"?"Download PDF Komprehensif":"Download PDF Ringkasan"}</button>
           </section>
         </div>
       </section>}
