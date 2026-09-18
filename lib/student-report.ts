@@ -380,3 +380,129 @@ export async function downloadGroupReportPdf(
   write(options.footer ?? "Laporan kelompok merangkum data pendampingan. Jawaban asesmen detail tersedia pada laporan PDF individual siswa.", 7.5);
   doc.save(`${filenameSafe(title)}.pdf`);
 }
+
+
+export type GroupReportSummary = {
+  id: string;
+  full_name: string;
+  class_name: string;
+  nis: string | null;
+  nisn: string | null;
+  career_direction: string | null;
+  education_target: string | null;
+  assessments: Array<{ title: string; status: string }>;
+  actionPlans: Array<{ goal: string; status: string }>;
+  counselingCount: number;
+  openFollowUps: number;
+};
+
+export async function loadGroupReportSummary(client: SupabaseClient, studentIds: string[]): Promise<GroupReportSummary[]> {
+  if (!studentIds.length) return [];
+
+  const [studentsRes, profileRes, attemptsRes, actionRes, counselingRes, followRes] = await Promise.all([
+    client.from("students").select("id,full_name,nis,nisn,classes(name)").in("id", studentIds),
+    client.from("student_profiles").select("student_id,career_direction,education_target").in("student_id", studentIds),
+    client.from("assessment_attempts").select("student_id,status,assessment_definitions(title)").in("student_id", studentIds).in("status", ["submitted","reviewed","draft"]),
+    client.from("assessment_action_plans").select("student_id,goal,status").in("student_id", studentIds),
+    client.from("counseling_sessions").select("student_id,id").in("student_id", studentIds),
+    client.from("follow_ups").select("student_id,status").in("student_id", studentIds).in("status", ["open","in_progress"]),
+  ]);
+
+  const error = studentsRes.error || profileRes.error || attemptsRes.error || actionRes.error || counselingRes.error || followRes.error;
+  if (error) throw error;
+
+  const profiles = new Map(((profileRes.data ?? []) as Array<{ student_id: string; career_direction: string | null; education_target: string | null }>).map((row) => [row.student_id, row]));
+  const attempts = attemptsRes.data ?? [];
+  const plans = actionRes.data ?? [];
+  const sessions = counselingRes.data ?? [];
+  const followups = followRes.data ?? [];
+
+  return ((studentsRes.data ?? []) as unknown as Array<{ id: string; full_name: string; nis: string | null; nisn: string | null; classes: { name?: string | null } | null }>)
+    .map((student) => {
+      const profile = profiles.get(student.id);
+      return {
+        id: student.id,
+        full_name: student.full_name,
+        class_name: student.classes?.name ?? "Kelas belum tersedia",
+        nis: student.nis,
+        nisn: student.nisn,
+        career_direction: profile?.career_direction ?? null,
+        education_target: profile?.education_target ?? null,
+        assessments: attempts.filter((row) => row.student_id === student.id).map((row) => {
+          const rel = row.assessment_definitions as unknown as { title?: string | null } | null;
+          return { title: rel?.title ?? "Asesmen", status: row.status };
+        }),
+        actionPlans: plans.filter((row) => row.student_id === student.id).map((row) => ({ goal: row.goal, status: row.status })),
+        counselingCount: sessions.filter((row) => row.student_id === student.id).length,
+        openFollowUps: followups.filter((row) => row.student_id === student.id).length,
+      };
+    })
+    .sort((a, b) => a.class_name.localeCompare(b.class_name, "id") || a.full_name.localeCompare(b.full_name, "id"));
+}
+
+export async function downloadGroupSummaryPdf(
+  rows: GroupReportSummary[],
+  title: string,
+  options: PdfOptions = {},
+) {
+  const { jsPDF } = await import("jspdf");
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const margin = 15;
+  let y = 18;
+
+  const ensure = (height = 10) => {
+    if (y + height > 280) {
+      doc.addPage();
+      y = 18;
+    }
+  };
+  const write = (text: string, size = 9.2, bold = false, indent = 0, color: [number, number, number] = [16, 42, 58]) => {
+    doc.setFont("helvetica", bold ? "bold" : "normal");
+    doc.setFontSize(size);
+    doc.setTextColor(...color);
+    const lines = doc.splitTextToSize(text || "-", 180 - indent);
+    ensure(lines.length * 4.3 + 3);
+    doc.text(lines, margin + indent, y);
+    y += lines.length * 4.3 + 2;
+  };
+
+  doc.setFillColor(8, 62, 89);
+  doc.rect(0, 0, 210, 38, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(17);
+  doc.text(title, margin, 18);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.text(`${rows.length} siswa | Bina Insan LifeMap`, margin, 28);
+  y = 48;
+
+  let currentClass = "";
+  rows.forEach((row, index) => {
+    if (row.class_name !== currentClass) {
+      currentClass = row.class_name;
+      ensure(18);
+      y += 2;
+      doc.setDrawColor(84, 200, 246);
+      doc.setLineWidth(0.7);
+      doc.line(margin, y, 195, y);
+      y += 6;
+      write(currentClass, 13, true, 0, [8, 62, 89]);
+    }
+
+    ensure(38);
+    write(`${index + 1}. ${row.full_name}`, 10.5, true);
+    write(`NIS: ${row.nis ?? "-"} | NISN: ${row.nisn ?? "-"}`, 8.2, false, 2, [104, 124, 137]);
+    write(`Arah karier: ${row.career_direction ?? "-"} | Target pendidikan: ${row.education_target ?? "-"}`, 8.8, false, 2);
+    write(`Asesmen: ${row.assessments.length} | Action Plan: ${row.actionPlans.length} | Konseling: ${row.counselingCount} | Follow-up aktif: ${row.openFollowUps}`, 8.8, false, 2);
+    if (row.assessments.length) {
+      write("Status asesmen: " + row.assessments.map((item) => `${item.title} (${item.status})`).join("; "), 8.2, false, 2, [104, 124, 137]);
+    }
+    y += 2;
+  });
+
+  ensure(18);
+  y += 4;
+  write(options.footer ?? "Laporan kelompok untuk monitoring pendampingan. Jawaban detail per soal tersedia pada laporan individual siswa.", 7.5, false, 0, [104, 124, 137]);
+  doc.save(`${filenameSafe(title)}.pdf`);
+}
