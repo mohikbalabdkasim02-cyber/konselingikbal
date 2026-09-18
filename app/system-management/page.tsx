@@ -99,6 +99,7 @@ export default function SystemManagementPage() {
 
   const [studentForm, setStudentForm] = useState({ ...emptyStudent });
   const [classForm, setClassForm] = useState({ ...emptyClass });
+  const [yearForm, setYearForm] = useState({ name: "", starts_on: "", ends_on: "" });
   const [generatedPin, setGeneratedPin] = useState<{ name: string; pin: string } | null>(null);
 
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -310,6 +311,27 @@ export default function SystemManagementPage() {
       const { error } = await supabase.from("classes").delete().eq("id", row.id);
       if (error) throw error;
       setMessage("Kelas berhasil dihapus.");
+      await loadAll();
+    } catch (error) {
+      setMessage(toUserMessage(error));
+    } finally { setSaving(false); }
+  }
+
+  async function createAcademicYear(event: FormEvent) {
+    event.preventDefault();
+    if (!yearForm.name.trim()) return setMessage("Nama tahun ajaran wajib diisi.");
+    setSaving(true); setMessage("");
+    try {
+      const { error } = await supabase.from("academic_years").insert({
+        name: yearForm.name.trim(),
+        starts_on: yearForm.starts_on || null,
+        ends_on: yearForm.ends_on || null,
+        is_active: false,
+        updated_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+      setYearForm({ name: "", starts_on: "", ends_on: "" });
+      setMessage("Tahun ajaran baru berhasil ditambahkan.");
       await loadAll();
     } catch (error) {
       setMessage(toUserMessage(error));
@@ -603,8 +625,13 @@ export default function SystemManagementPage() {
             </div>
           </section>
           <section className="system-card">
-            <div className="system-card-head"><div><span>TAHUN AJARAN</span><h2>Aktivasi periode</h2></div><GraduationCap size={22}/></div>
-            <div className="system-list">{years.map((year) => <div key={year.id}><div><strong>{year.name}</strong><small>{year.starts_on ?? "-"} - {year.ends_on ?? "-"}</small></div>{year.is_active ? <span className="system-status active">Aktif</span> : <button onClick={() => setActiveYear(year.id)}>Aktifkan</button>}</div>)}</div>
+            <div className="system-card-head"><div><span>TAHUN AJARAN</span><h2>Periode & aktivasi</h2></div><GraduationCap size={22}/></div>
+            <form className="system-form compact-year-form" onSubmit={createAcademicYear}>
+              <Field label="Nama tahun ajaran" value={yearForm.name} onChange={(v) => setYearForm({ ...yearForm, name: v })}/>
+              <div className="system-form-row"><label><span>Mulai</span><input type="date" value={yearForm.starts_on} onChange={(e) => setYearForm({ ...yearForm, starts_on: e.target.value })}/></label><label><span>Selesai</span><input type="date" value={yearForm.ends_on} onChange={(e) => setYearForm({ ...yearForm, ends_on: e.target.value })}/></label></div>
+              <button className="system-secondary" disabled={saving}><Plus size={15}/> Tambah tahun ajaran</button>
+            </form>
+            <div className="system-list year-list">{years.map((year) => <div key={year.id}><div><strong>{year.name}</strong><small>{year.starts_on ?? "-"} - {year.ends_on ?? "-"}</small></div>{year.is_active ? <span className="system-status active">Aktif</span> : <button onClick={() => setActiveYear(year.id)}>Aktifkan</button>}</div>)}</div>
             <p className="system-copy">Perubahan tahun aktif tidak menghapus riwayat enrollment. Data siswa lama tetap dapat dilacak.</p>
           </section>
         </div>
