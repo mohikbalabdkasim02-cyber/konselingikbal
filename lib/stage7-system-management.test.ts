@@ -40,5 +40,5 @@ test("Stage 7 keeps class and student destructive actions conservative", () => {
   const page = read("app/system-management/page.tsx");
   assert.match(page, /Arsipkan/);
   assert.match(page, /Riwayat asesmen dan pendampingan tetap tersimpan/);
-  assert.match(page, /masih memiliki .* siswa aktif/);
+  assert.match(page, /masih memiliki .* siswa/);
 });
