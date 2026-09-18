@@ -687,3 +687,7 @@ body{
     border-radius:12px!important;
   }
 }
+
+
+/* Stage 7 — Student 360 assessment history + report affordances. */
+.student-assessment-history{display:grid;margin-top:14px}.student-assessment-history-row{display:grid;grid-template-columns:34px minmax(0,1fr) 20px;gap:11px;align-items:center;text-decoration:none;color:var(--stage6-ink);padding:13px 2px;border-top:1px solid var(--stage6-line)}.student-assessment-history-row:first-child{border-top:0}.student-assessment-history-row:hover{background:#f8fbfc}.student-assessment-history-row>div{display:grid;gap:3px}.student-assessment-history-row strong{font-size:13px}.student-assessment-history-row small{font-size:11px;color:var(--stage6-muted)}.student-assessment-history-row>svg{color:var(--stage6-muted)}.review-answer.unanswered{background:#fafcfd!important;border-style:dashed!important}.review-answer.unanswered p{color:#8b99a2!important;font-style:italic}
