@@ -506,3 +506,202 @@ export async function downloadGroupSummaryPdf(
   write(options.footer ?? "Laporan kelompok untuk monitoring pendampingan. Jawaban detail per soal tersedia pada laporan individual siswa.", 7.5, false, 0, [104, 124, 137]);
   doc.save(`${filenameSafe(title)}.pdf`);
 }
+
+
+export async function loadComprehensiveGroupBundles(client: SupabaseClient, studentIds: string[]): Promise<StudentReportBundle[]> {
+  if (!studentIds.length) return [];
+
+  const [studentsRes, profileRes, lifeRes, milestoneRes, roadmapRes, attemptsRes, actionRes, careerSelfRes, choicesRes, portfolioRes, counselingRes, followRes, outcomeRes, consultRes, signalRes] = await Promise.all([
+    client.from("students").select("id,full_name,nis,nisn,gender,email,classes(name,grade)").in("id", studentIds),
+    client.from("student_profiles").select("*").in("student_id", studentIds),
+    client.from("life_aspects").select("student_id,category,content,status,sort_order").in("student_id", studentIds).order("sort_order"),
+    client.from("milestones").select("student_id,title,description,target_date,status,sort_order,completed_at").in("student_id", studentIds).order("sort_order"),
+    client.from("roadmap_items").select("student_id,title,description,mentor,target_date,status,sort_order").in("student_id", studentIds).order("sort_order"),
+    client.from("assessment_attempts").select("id,student_id,status,submitted_at,assessment_definitions(slug,title,domain,version)").in("student_id", studentIds).order("started_at", { ascending: false }),
+    client.from("assessment_action_plans").select("student_id,domain,goal,small_step,support,evidence,start_date,review_date,status,student_reflection,counselor_note").in("student_id", studentIds).order("created_at", { ascending: false }),
+    client.from("career_self_profiles").select("*").in("student_id", studentIds),
+    client.from("student_career_choices").select("student_id,position,custom_name,reason,review_date,status,career_profiles(name)").in("student_id", studentIds).order("position"),
+    client.from("career_portfolio_items").select("student_id,title,category,evidence_url,reflection,occurred_at,status").in("student_id", studentIds).order("occurred_at", { ascending: false }),
+    client.from("counseling_sessions").select("student_id,scheduled_at,session_type,status,topic,summary,recommendation,next_action").in("student_id", studentIds).order("scheduled_at", { ascending: false }),
+    client.from("follow_ups").select("student_id,title,notes,due_at,priority,status,completed_at").in("student_id", studentIds).order("due_at", { ascending: false }),
+    client.from("student_outcomes").select("student_id,outcome_type,institution,major_or_role,city,status,start_date,notes").in("student_id", studentIds).order("updated_at", { ascending: false }),
+    client.from("consultation_requests").select("student_id,domain,urgency,status,requested_at,scheduled_at").in("student_id", studentIds).order("requested_at", { ascending: false }),
+    client.from("need_signals").select("student_id,domain,kind,severity,status,created_at").in("student_id", studentIds).order("created_at", { ascending: false }),
+  ]);
+
+  const error = [studentsRes, profileRes, lifeRes, milestoneRes, roadmapRes, attemptsRes, actionRes, careerSelfRes, choicesRes, portfolioRes, counselingRes, followRes, outcomeRes, consultRes, signalRes].find((res) => res.error)?.error;
+  if (error) throw error;
+
+  const attempts = (attemptsRes.data ?? []) as Array<{
+    id: string;
+    student_id: string;
+    status: string;
+    submitted_at: string | null;
+    assessment_definitions: { slug: string; title: string; domain: string; version: number } | null;
+  }>;
+  const attemptIds = attempts.map((item) => item.id);
+  const [answersRes, reviewsRes, resultsRes] = attemptIds.length
+    ? await Promise.all([
+        client.from("assessment_answers").select("attempt_id,item_key,value,sensitive").in("attempt_id", attemptIds),
+        client.from("assessment_reviews").select("*").in("attempt_id", attemptIds),
+        client.from("assessment_results").select("*").in("attempt_id", attemptIds),
+      ])
+    : [{ data: [], error: null }, { data: [], error: null }, { data: [], error: null }];
+  const nestedError = answersRes.error || reviewsRes.error || resultsRes.error;
+  if (nestedError) throw nestedError;
+
+  const profiles = (profileRes.data ?? []) as UnknownRow[];
+  const careerSelf = (careerSelfRes.data ?? []) as UnknownRow[];
+  const answers = (answersRes.data ?? []) as Array<{ attempt_id: string; item_key: string; value: unknown; sensitive: boolean }>;
+  const reviews = (reviewsRes.data ?? []) as UnknownRow[];
+  const results = (resultsRes.data ?? []) as UnknownRow[];
+
+  const pick = (rows: UnknownRow[], studentId: string) => rows.filter((row) => row.student_id === studentId);
+
+  return ((studentsRes.data ?? []) as unknown as Array<{
+    id: string; full_name: string; nis: string | null; nisn: string | null; gender: string | null; email: string | null; classes: { name: string; grade: number } | null;
+  }>).map((student) => {
+    const studentAttempts = attempts.filter((item) => item.student_id === student.id);
+    const assessments: ReportAssessment[] = studentAttempts.map((attempt) => {
+      const meta = attempt.assessment_definitions;
+      const definition = meta ? getAssessmentDefinition(meta.slug, meta.version) : null;
+      const byKey = new Map(answers.filter((answer) => answer.attempt_id === attempt.id).map((answer) => [answer.item_key, answer]));
+      const questions = definition
+        ? definition.sections.flatMap((section) => section.items.map((item) => {
+            const answer = byKey.get(item.id);
+            return { section: section.title, prompt: item.prompt, answer: answerDisplay(answer?.value, item.options), sensitive: Boolean(item.sensitive || answer?.sensitive) };
+          }))
+        : answers.filter((answer) => answer.attempt_id === attempt.id).map((answer) => ({ section: "Jawaban", prompt: answer.item_key, answer: answerDisplay(answer.value), sensitive: Boolean(answer.sensitive) }));
+      return {
+        id: attempt.id,
+        title: meta?.title ?? "Asesmen",
+        domain: meta?.domain ?? "unknown",
+        status: attempt.status,
+        submittedAt: attempt.submitted_at,
+        questions,
+        review: reviews.find((row) => row.attempt_id === attempt.id) ?? null,
+        result: results.find((row) => row.attempt_id === attempt.id) ?? null,
+      };
+    });
+
+    return {
+      student: {
+        id: student.id,
+        full_name: student.full_name,
+        nis: student.nis,
+        nisn: student.nisn,
+        gender: student.gender,
+        email: student.email,
+        class_name: student.classes?.name ?? "Kelas belum tersedia",
+        grade: student.classes?.grade ?? null,
+      },
+      profile: profiles.find((row) => row.student_id === student.id) ?? null,
+      lifeAspects: pick((lifeRes.data ?? []) as UnknownRow[], student.id),
+      milestones: pick((milestoneRes.data ?? []) as UnknownRow[], student.id),
+      roadmap: pick((roadmapRes.data ?? []) as UnknownRow[], student.id),
+      assessments,
+      actionPlans: pick((actionRes.data ?? []) as UnknownRow[], student.id),
+      careerSelf: careerSelf.find((row) => row.student_id === student.id) ?? null,
+      careerChoices: pick((choicesRes.data ?? []) as UnknownRow[], student.id),
+      careerPortfolio: pick((portfolioRes.data ?? []) as UnknownRow[], student.id),
+      counseling: pick((counselingRes.data ?? []) as UnknownRow[], student.id),
+      followUps: pick((followRes.data ?? []) as UnknownRow[], student.id),
+      outcomes: pick((outcomeRes.data ?? []) as UnknownRow[], student.id),
+      consultationRequests: pick((consultRes.data ?? []) as UnknownRow[], student.id),
+      needSignals: pick((signalRes.data ?? []) as UnknownRow[], student.id),
+    };
+  }).sort((a, b) => a.student.class_name.localeCompare(b.student.class_name, "id") || a.student.full_name.localeCompare(b.student.full_name, "id"));
+}
+
+export async function downloadComprehensiveGroupPdf(
+  bundles: StudentReportBundle[],
+  title: string,
+  options: PdfOptions = {},
+) {
+  const { jsPDF } = await import("jspdf");
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const margin = 15;
+  let y = 18;
+
+  const ensure = (height = 12) => {
+    if (y + height > 280) {
+      doc.addPage();
+      y = 18;
+    }
+  };
+  const write = (text: string, size = 9, bold = false, indent = 0, color: [number, number, number] = [16, 42, 58]) => {
+    doc.setFont("helvetica", bold ? "bold" : "normal");
+    doc.setFontSize(size);
+    doc.setTextColor(...color);
+    const lines = doc.splitTextToSize(text || "-", 180 - indent);
+    ensure(lines.length * 4.2 + 3);
+    doc.text(lines, margin + indent, y);
+    y += lines.length * 4.2 + 2;
+  };
+  const divider = () => {
+    ensure(8);
+    doc.setDrawColor(226, 233, 237);
+    doc.line(margin, y, 195, y);
+    y += 5;
+  };
+
+  doc.setFillColor(8, 62, 89);
+  doc.rect(0, 0, 210, 38, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(17);
+  doc.text(title, margin, 18);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.text(`${bundles.length} siswa | Laporan komprehensif`, margin, 28);
+  y = 48;
+
+  bundles.forEach((bundle, index) => {
+    if (index > 0) {
+      doc.addPage();
+      y = 18;
+    }
+    write(`${index + 1}. ${bundle.student.full_name}`, 15, true, 0, [8, 62, 89]);
+    write(`${bundle.student.class_name} | NIS ${bundle.student.nis ?? "-"} | NISN ${bundle.student.nisn ?? "-"}`, 8.5, false, 0, [104, 124, 137]);
+
+    divider();
+    write("Life & Career Profile", 11, true, 0, [8, 62, 89]);
+    const profile = bundle.profile ?? {};
+    write(`Arah karier: ${asText(profile.career_direction)}`, 8.8, false, 2);
+    write(`Target pendidikan: ${asText(profile.education_target)}`, 8.8, false, 2);
+    write(`Expertise: ${asText(profile.expertise)} | Tahap: ${asText(profile.journey_stage)}`, 8.8, false, 2);
+
+    divider();
+    write("Asesmen & Jawaban Detail", 11, true, 0, [8, 62, 89]);
+    if (!bundle.assessments.length) write("Belum ada asesmen.", 8.8, false, 2, [104, 124, 137]);
+    bundle.assessments.forEach((assessment) => {
+      write(`${assessment.title} [${assessment.status}]`, 9.5, true, 2);
+      assessment.questions.forEach((question, qIndex) => {
+        write(`${qIndex + 1}. ${question.prompt}`, 8.2, true, 4);
+        write(`Jawaban: ${question.answer}`, 8.2, false, 7);
+      });
+    });
+
+    divider();
+    write("Action Plan", 11, true, 0, [8, 62, 89]);
+    if (!bundle.actionPlans.length) write("Belum ada Action Plan.", 8.8, false, 2, [104, 124, 137]);
+    bundle.actionPlans.forEach((plan) => write(`${asText(plan.domain)} - ${asText(plan.goal)} | Langkah: ${asText(plan.small_step)} | Status: ${asText(plan.status)}`, 8.3, false, 2));
+
+    divider();
+    write("Konseling & Follow-up", 11, true, 0, [8, 62, 89]);
+    if (!bundle.counseling.length && !bundle.followUps.length) write("Belum ada riwayat konseling/follow-up.", 8.8, false, 2, [104, 124, 137]);
+    bundle.counseling.forEach((session) => write(`Konseling: ${asText(session.topic)} | ${asText(session.status)} | ${asText(session.summary)} | Next: ${asText(session.next_action)}`, 8.3, false, 2));
+    bundle.followUps.forEach((follow) => write(`Follow-up: ${asText(follow.title)} | ${asText(follow.priority)} | ${asText(follow.status)}`, 8.3, false, 2));
+
+    divider();
+    write("BK Karier, Outcome & Signals", 11, true, 0, [8, 62, 89]);
+    bundle.careerChoices.forEach((choice) => write(`Plan ${asText(choice.position)}: ${asText(choice.custom_name)} | ${asText(choice.reason)}`, 8.3, false, 2));
+    bundle.outcomes.forEach((outcome) => write(`Outcome: ${asText(outcome.outcome_type)} | ${asText(outcome.institution)} | ${asText(outcome.major_or_role)}`, 8.3, false, 2));
+    bundle.needSignals.forEach((signal) => write(`Need signal: ${asText(signal.domain)} | ${asText(signal.kind)} | ${asText(signal.severity)} | ${asText(signal.status)}`, 8.3, false, 2));
+  });
+
+  ensure(20);
+  y += 4;
+  write(options.footer ?? "Dokumen internal pendampingan BK. Gunakan sesuai kewenangan dan jaga kerahasiaan data siswa.", 7.5, false, 0, [104, 124, 137]);
+  doc.save(`${filenameSafe(title)}-komprehensif.pdf`);
+}
