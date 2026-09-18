@@ -39,6 +39,7 @@ export default function HomePage() {
   const [gradeFilter, setGradeFilter] = useState("all");
   const [selected, setSelected] = useState<Student | null>(null);
   const [loading, setLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState<"ringkasan" | "siswa">("ringkasan");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -54,6 +55,29 @@ export default function HomePage() {
       else setStudents([]);
     });
     return () => listener.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const syncFromHash = () => {
+      if (window.location.hash === "#siswa") setActiveSection("siswa");
+      else if (window.location.hash === "#ringkasan" || !window.location.hash) setActiveSection("ringkasan");
+    };
+
+    const updateFromScroll = () => {
+      const directory = document.getElementById("siswa");
+      if (!directory) return;
+      const directoryTop = directory.getBoundingClientRect().top + window.scrollY;
+      const readingLine = window.scrollY + 150;
+      setActiveSection(readingLine >= directoryTop ? "siswa" : "ringkasan");
+    };
+
+    syncFromHash();
+    window.addEventListener("hashchange", syncFromHash);
+    window.addEventListener("scroll", updateFromScroll, { passive: true });
+    return () => {
+      window.removeEventListener("hashchange", syncFromHash);
+      window.removeEventListener("scroll", updateFromScroll);
+    };
   }, []);
 
   async function loadStudents() {
@@ -239,10 +263,20 @@ export default function HomePage() {
           <BrandLogo compact />
         </div>
         <nav className="stage6-nav" aria-label="Navigasi utama">
-          <a href="#ringkasan" className="active">
+          <a
+            href="#ringkasan"
+            className={activeSection === "ringkasan" ? "active" : ""}
+            aria-current={activeSection === "ringkasan" ? "page" : undefined}
+            onClick={() => setActiveSection("ringkasan")}
+          >
             <Home /> Ringkasan
           </a>
-          <a href="#siswa">
+          <a
+            href="#siswa"
+            className={activeSection === "siswa" ? "active" : ""}
+            aria-current={activeSection === "siswa" ? "page" : undefined}
+            onClick={() => setActiveSection("siswa")}
+          >
             <Users /> Daftar Siswa
           </a>
           <Link href="/counseling">
