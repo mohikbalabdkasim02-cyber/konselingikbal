@@ -270,10 +270,7 @@ begin
       returning id into v_student_id;
       v_created := v_created + 1;
 
-      v_pin := lpad((floor(random()*900000)+100000)::int::text,6,'0');
-      insert into public.student_access_credentials(student_id,pin_hash,is_active,failed_attempts,locked_until,last_login_at,updated_at)
-      values(v_student_id,crypt(v_pin,gen_salt('bf',10)),true,0,null,null,now())
-      on conflict(student_id) do nothing;
+      v_pin := public.admin_generate_student_pin(v_student_id);
       v_generated_access := v_generated_access || jsonb_build_array(jsonb_build_object(
         'student_id',v_student_id,'full_name',v_name,'class_name',v_class_name,'pin',v_pin
       ));
@@ -291,9 +288,7 @@ begin
       v_updated := v_updated + 1;
 
       if not exists(select 1 from public.student_access_credentials c where c.student_id=v_student_id) then
-        v_pin := lpad((floor(random()*900000)+100000)::int::text,6,'0');
-        insert into public.student_access_credentials(student_id,pin_hash,is_active,failed_attempts,locked_until,last_login_at,updated_at)
-        values(v_student_id,crypt(v_pin,gen_salt('bf',10)),true,0,null,null,now());
+        v_pin := public.admin_generate_student_pin(v_student_id);
         v_generated_access := v_generated_access || jsonb_build_array(jsonb_build_object(
           'student_id',v_student_id,'full_name',v_name,'class_name',v_class_name,'pin',v_pin
         ));
