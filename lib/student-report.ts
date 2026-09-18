@@ -91,7 +91,7 @@ export async function loadStudentReportBundle(client: SupabaseClient, studentId:
   const anyError = [profileRes, lifeRes, milestoneRes, roadmapRes, attemptsRes, actionRes, careerSelfRes, choicesRes, portfolioRes, counselingRes, followRes, outcomeRes, consultRes, signalRes].find((r) => r.error)?.error;
   if (anyError) throw anyError;
 
-  const attempts = (attemptsRes.data ?? []) as Array<{
+  const attempts = (attemptsRes.data ?? []) as unknown as Array<{
     id: string;
     status: string;
     submitted_at: string | null;
@@ -532,7 +532,7 @@ export async function loadComprehensiveGroupBundles(client: SupabaseClient, stud
   const error = [studentsRes, profileRes, lifeRes, milestoneRes, roadmapRes, attemptsRes, actionRes, careerSelfRes, choicesRes, portfolioRes, counselingRes, followRes, outcomeRes, consultRes, signalRes].find((res) => res.error)?.error;
   if (error) throw error;
 
-  const attempts = (attemptsRes.data ?? []) as Array<{
+  const attempts = (attemptsRes.data ?? []) as unknown as Array<{
     id: string;
     student_id: string;
     status: string;
