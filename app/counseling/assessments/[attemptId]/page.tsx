@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Save, ShieldAlert } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Download, Save, ShieldAlert } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getAssessmentDefinition } from "@/lib/assessments/registry";
 import { toUserMessage } from "@/lib/errors";
 import { ErrorCard } from "@/components/common/ErrorCard";
+import { downloadStudentReportPdf, loadStudentReportBundle } from "@/lib/student-report";
 
 type AttemptRow={
   id:string;student_id:string;status:string;submitted_at:string|null;
@@ -29,15 +30,15 @@ const FIELD_LABELS:Record<string,Array<[string,string]>>={
 };
 
 function answerDisplay(value:unknown, options?:Array<{value:string;label:string}>){
-  if(Array.isArray(value)) return value.map(v=>options?.find(o=>o.value===String(v))?.label??String(v)).join("; ");
-  if(typeof value==="string") return options?.find(o=>o.value===value)?.label??value;
-  if(value===null||value===undefined) return "—";
+  if(Array.isArray(value)) return value.length?value.map(v=>options?.find(o=>o.value===String(v))?.label??String(v)).join("; "):"Belum dijawab";
+  if(typeof value==="string") return value?(options?.find(o=>o.value===value)?.label??value):"Belum dijawab";
+  if(value===null||value===undefined) return "Belum dijawab";
   return JSON.stringify(value);
 }
 
 export default function CounselorAssessmentReview(){
   const {attemptId}=useParams<{attemptId:string}>();
-  const [attempt,setAttempt]=useState<AttemptRow|null>(null);const [answers,setAnswers]=useState<Record<string,unknown>>({});const [review,setReview]=useState<ReviewState>(EMPTY);const [loading,setLoading]=useState(true);const [saving,setSaving]=useState(false);const [message,setMessage]=useState("");
+  const [attempt,setAttempt]=useState<AttemptRow|null>(null);const [answers,setAnswers]=useState<Record<string,unknown>>({});const [review,setReview]=useState<ReviewState>(EMPTY);const [loading,setLoading]=useState(true);const [saving,setSaving]=useState(false);const [reporting,setReporting]=useState(false);const [message,setMessage]=useState("");
   useEffect(()=>{void load()},[attemptId]);
 
   async function load(){
@@ -66,17 +67,28 @@ export default function CounselorAssessmentReview(){
   }
 
   const definition=useMemo(()=>attempt?.assessment_definitions?getAssessmentDefinition(attempt.assessment_definitions.slug,attempt.assessment_definitions.version):null,[attempt]);
-  const answered=useMemo(()=>definition?.sections.flatMap(section=>section.items.map(item=>({section:section.title,item,value:answers[item.id]}))).filter(x=>x.value!==undefined)??[],[definition,answers]);
+  const answered=useMemo(()=>definition?.sections.flatMap(section=>section.items.map(item=>({section:section.title,item,value:answers[item.id]})))??[],[definition,answers]);
+  const answeredCount=useMemo(()=>answered.filter(x=>x.value!==undefined&&x.value!==null&&x.value!=="").length,[answered]);
+
+  async function downloadFullReport(){
+    if(!attempt)return;
+    setReporting(true);setMessage("");
+    try{
+      const bundle=await loadStudentReportBundle(supabase,attempt.student_id);
+      await downloadStudentReportPdf(bundle,{includeDetailedAnswers:true});
+      setMessage("PDF laporan komprehensif siswa berhasil dibuat.");
+    }catch(e){setMessage(toUserMessage(e))}finally{setReporting(false)}
+  }
   if(loading)return <main className="center-screen"><div className="loader"/></main>;
   if(!attempt)return <main className="assessment-page"><div className="assessment-shell"><ErrorCard message={message||"Hasil asesmen tidak ditemukan."}/></div></main>;
   const domain=attempt.assessment_definitions?.domain??"personal";
 
   return <main className="student-workspace-page">
     <header className="student-workspace-topbar"><Link href="/counseling/assessments" className="back-link"><ArrowLeft size={18}/> Assessment Inbox</Link><div className="workspace-brand">Bina Insan <strong>Review Asesmen</strong></div></header>
-    <section className="student-hero"><div><p className="eyebrow">REVIEW GURU BK</p><h1>{attempt.students?.full_name??"Siswa"}</h1><p>{attempt.students?.classes?.name??"Kelas belum tersedia"} · {attempt.assessment_definitions?.title??"Asesmen"}</p></div><span className="status-pill"><CheckCircle2 size={16}/>{attempt.status==="reviewed"?"Sudah direview":"Perlu review"}</span></section>
+    <section className="student-hero"><div><p className="eyebrow">REVIEW GURU BK</p><h1>{attempt.students?.full_name??"Siswa"}</h1><p>{attempt.students?.classes?.name??"Kelas belum tersedia"} · {attempt.assessment_definitions?.title??"Asesmen"}</p></div><div className="hero-actions"><button className="refresh-btn" onClick={downloadFullReport} disabled={reporting}><Download size={16}/>{reporting?"Menyiapkan...":"Download PDF Siswa"}</button><span className="status-pill"><CheckCircle2 size={16}/>{attempt.status==="reviewed"?"Sudah direview":"Perlu review"}</span></div></section>
     {message&&<div className="workspace-message">{message}</div>}
     <section className="counselor-review-grid">
-      <div className="workspace-card"><div className="card-title"><ShieldAlert size={18}/><div><p className="eyebrow">JAWABAN SISWA</p><h2>Data asesmen sesuai kewenangan</h2></div></div><p className="section-copy">Jawaban sensitif hanya ditampilkan di ruang review individual ini. Jangan salin ke dashboard umum.</p><div className="review-answer-list">{answered.map(({section,item,value})=><div className="review-answer" key={item.id}><small>{section}</small><strong>{item.prompt}</strong><p>{answerDisplay(value,item.options)}</p></div>)}</div></div>
+      <div className="workspace-card"><div className="card-title"><ShieldAlert size={18}/><div><p className="eyebrow">JAWABAN SISWA</p><h2>{answeredCount}/{answered.length} soal terjawab</h2></div></div><p className="section-copy">Semua soal ditampilkan sesuai urutan asesmen, termasuk soal yang belum dijawab. Jawaban sensitif hanya ditampilkan di ruang review individual ini.</p><div className="review-answer-list">{answered.map(({section,item,value},index)=><div className={value===undefined||value===null||value===""?"review-answer unanswered":"review-answer"} key={item.id}><small>{String(index+1).padStart(2,"0")} · {section}{item.sensitive?" · SENSITIF":""}</small><strong>{item.prompt}</strong><p>{answerDisplay(value,item.options)}</p></div>)}</div></div>
       <aside className="workspace-card counselor-review-form"><div className="card-title"><Save size={18}/><div><p className="eyebrow">LEMBAR TINDAK LANJUT</p><h2>Catatan Guru BK</h2></div></div>
         {domain==="personal"&&<><TextArea label="Masalah prioritas" value={review.priority_issue} onChange={v=>setReview({...review,priority_issue:v})}/><label className="profile-field"><span>Tingkat kebutuhan</span><select value={review.need_level} onChange={e=>setReview({...review,need_level:e.target.value})}><option value="">Pilih</option><option value="light">Ringan</option><option value="medium">Sedang</option><option value="high">Tinggi</option><option value="urgent">Perlu tindak lanjut segera</option></select></label><TextArea label="Faktor pemicu utama" value={review.triggers} onChange={v=>setReview({...review,triggers:v})}/><TextArea label="Faktor pelindung/kekuatan siswa" value={review.protective_factors} onChange={v=>setReview({...review,protective_factors:v})}/><TextArea label="Bantuan yang disepakati" value={review.agreed_support} onChange={v=>setReview({...review,agreed_support:v})}/></>}
         {(FIELD_LABELS[domain]??[]).map(([key,label])=><TextArea key={key} label={label} value={review.review_data[key]??""} onChange={v=>setReview({...review,review_data:{...review.review_data,[key]:v}})}/>)}

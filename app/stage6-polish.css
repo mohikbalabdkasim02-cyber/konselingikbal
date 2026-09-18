@@ -391,3 +391,307 @@ html{
     animation-iteration-count:1!important;
   }
 }
+
+
+/* Stage 6.5 — Student Portal welcome composition + portrait precision. */
+body{
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+.student-login-stage61-brand{
+  display:grid!important;
+  grid-template-rows:auto 1fr auto;
+  align-content:stretch;
+  gap:26px;
+  overflow:hidden;
+}
+.student-login-stage65-center{
+  align-self:center;
+  max-width:540px;
+  padding:26px 0 24px;
+  border-top:1px solid rgba(255,255,255,.13);
+  border-bottom:1px solid rgba(255,255,255,.13);
+}
+.student-login-stage65-center>span{
+  display:block;
+  margin-bottom:10px;
+  color:var(--stage6-sky);
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.18em;
+}
+.student-login-stage65-center h2{
+  margin:0;
+  max-width:500px;
+  color:#fff;
+  font-size:clamp(27px,2.4vw,38px);
+  line-height:1.08;
+  letter-spacing:-.045em;
+}
+.student-login-stage65-center>p{
+  margin:13px 0 0;
+  max-width:500px;
+  color:#cfe0e7;
+  font-size:14px;
+  line-height:1.65;
+}
+.student-login-stage65-points{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+  margin-top:20px;
+}
+.student-login-stage65-points>div{
+  min-width:0;
+  padding:12px 11px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  background:rgba(255,255,255,.045);
+  display:grid;
+  gap:6px;
+}
+.student-login-stage65-points strong{
+  color:var(--stage6-gold);
+  font-size:10px;
+  letter-spacing:.1em;
+}
+.student-login-stage65-points span{
+  color:#edf6f9;
+  font-size:11px;
+  font-weight:760;
+  line-height:1.35;
+}
+.student-login-stage65-bottom{
+  max-width:560px;
+}
+.student-login-stage65-bottom h1{
+  font-size:clamp(44px,4.8vw,66px)!important;
+  margin:0 0 14px!important;
+}
+.student-login-stage65-bottom>p:not(.stage6-kicker){
+  margin:0;
+  max-width:520px;
+  color:#d7e6ec;
+  font-size:16px;
+  line-height:1.65;
+}
+.student-login-stage65-bottom blockquote{
+  margin:16px 0 0;
+  padding-left:14px;
+  border-left:2px solid rgba(84,200,246,.72);
+  color:#bcd2dc;
+  font-size:12px;
+  line-height:1.55;
+  font-style:normal;
+}
+.student-login-stage61-card{
+  box-shadow:0 18px 52px rgba(8,62,89,.075)!important;
+}
+.student-login-stage61-card,
+.student-login-stage61-brand{
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.student-login-submit:active,
+.stage6-nav a:active,
+.bk-assessment-quick-access:active,
+.stage6-primary-link:active,
+.stage6-secondary-link:active{
+  transform:translateY(1px) scale(.995);
+}
+
+/* Slightly calmer desktop spacing across primary admin surfaces. */
+@media(min-width:1101px){
+  .stage6-content{
+    padding-top:30px;
+  }
+  .stage6-directory,
+  .stage62-insight-card,
+  .stage62-control .workspace-card{
+    border-radius:22px!important;
+  }
+}
+
+/* Portrait tablet: keep brand storytelling visible without pushing the form too far away. */
+@media(max-width:900px) and (orientation:portrait){
+  .student-login-stage61-shell{
+    width:min(700px,100%)!important;
+    gap:14px!important;
+  }
+  .student-login-stage61-brand{
+    min-height:440px!important;
+    padding:28px 30px!important;
+    border-radius:24px!important;
+    gap:18px;
+  }
+  .student-login-stage65-center{
+    max-width:none;
+    padding:20px 0;
+  }
+  .student-login-stage65-center h2{
+    max-width:600px;
+    font-size:32px;
+  }
+  .student-login-stage65-points{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .student-login-stage65-bottom h1{
+    font-size:42px!important;
+  }
+  .student-login-stage65-bottom>p:not(.stage6-kicker){
+    font-size:14px;
+  }
+  .student-login-stage61-card{
+    padding:30px!important;
+  }
+
+  .stage6-sidebar{
+    padding:12px 14px!important;
+  }
+  .stage6-nav a,.stage6-nav button{
+    min-height:42px!important;
+    border-radius:12px!important;
+  }
+  .stage6-content{
+    padding:18px 16px 30px!important;
+  }
+  .stage6-hero{
+    padding:24px!important;
+  }
+  .stage6-directory{
+    padding:17px!important;
+  }
+  .stage62-insight-grid{
+    gap:12px!important;
+  }
+}
+
+/* Phone portrait: concise brand story first, then the login task immediately. */
+@media(max-width:620px){
+  .student-login-stage61-shell{
+    display:block!important;
+  }
+  .student-login-stage61-brand{
+    min-height:300px!important;
+    padding:20px 20px 22px!important;
+    border-radius:0!important;
+    gap:14px;
+  }
+  .student-login-stage61-brand .student-login-stage61-logo{
+    width:150px!important;
+    border-radius:15px!important;
+    padding:9px 11px!important;
+  }
+  .student-login-stage65-center{
+    align-self:auto;
+    padding:14px 0 12px;
+  }
+  .student-login-stage65-center>span{
+    margin-bottom:7px;
+    font-size:9px;
+  }
+  .student-login-stage65-center h2{
+    max-width:420px;
+    font-size:27px;
+    line-height:1.08;
+  }
+  .student-login-stage65-center>p{
+    margin-top:9px;
+    font-size:12px;
+    line-height:1.5;
+  }
+  .student-login-stage65-points{
+    display:none;
+  }
+  .student-login-stage65-bottom .stage6-kicker,
+  .student-login-stage65-bottom>p:not(.stage6-kicker),
+  .student-login-stage65-bottom blockquote{
+    display:none;
+  }
+  .student-login-stage65-bottom h1{
+    margin:0!important;
+    font-size:34px!important;
+  }
+  .student-login-stage61-card{
+    padding:24px 18px 28px!important;
+  }
+  .student-login-stage61-intro{
+    gap:12px!important;
+    margin-bottom:15px!important;
+  }
+  .student-login-stage61-intro h2{
+    font-size:25px!important;
+  }
+  .student-login-privacy{
+    margin-bottom:18px!important;
+  }
+  .student-login-form-stage61{
+    gap:13px!important;
+  }
+  .student-login-control,
+  .student-login-submit{
+    height:50px!important;
+  }
+  .student-login-stage61-footer{
+    display:none!important;
+  }
+
+  .stage6-sidebar-brand{
+    padding-bottom:8px!important;
+  }
+  .stage6-nav{
+    gap:4px!important;
+  }
+  .stage6-nav a,.stage6-nav button{
+    min-height:39px!important;
+    padding:0 9px!important;
+    border-radius:11px!important;
+    font-size:12px!important;
+  }
+  .stage6-topbar{
+    padding:12px 14px!important;
+  }
+  .stage6-content{
+    padding:14px 12px 26px!important;
+  }
+  .stage6-hero{
+    padding:21px!important;
+    margin-bottom:14px!important;
+  }
+  .stage6-hero h1{
+    font-size:31px!important;
+  }
+  .stage6-stat-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;
+    margin-bottom:14px!important;
+  }
+  .stage6-stat{
+    min-height:96px!important;
+    padding:14px!important;
+  }
+  .stage6-stat strong{
+    font-size:27px!important;
+  }
+  .stage6-directory{
+    border-radius:19px!important;
+    padding:14px!important;
+  }
+  .stage6-student-row{
+    padding:13px 2px!important;
+    gap:10px!important;
+  }
+  .stage6-avatar{
+    width:40px!important;
+    height:40px!important;
+    border-radius:12px!important;
+  }
+}
+
+
+/* Stage 7 — Student 360 assessment history + report affordances. */
+.student-assessment-history{display:grid;margin-top:14px}.student-assessment-history-row{display:grid;grid-template-columns:34px minmax(0,1fr) 20px;gap:11px;align-items:center;text-decoration:none;color:var(--stage6-ink);padding:13px 2px;border-top:1px solid var(--stage6-line)}.student-assessment-history-row:first-child{border-top:0}.student-assessment-history-row:hover{background:#f8fbfc}.student-assessment-history-row>div{display:grid;gap:3px}.student-assessment-history-row strong{font-size:13px}.student-assessment-history-row small{font-size:11px;color:var(--stage6-muted)}.student-assessment-history-row>svg{color:var(--stage6-muted)}.review-answer.unanswered{background:#fafcfd!important;border-style:dashed!important}.review-answer.unanswered p{color:#8b99a2!important;font-style:italic}
+
+
+/* Stage 7 — dynamic Student Portal access management. */
+.student-pin-once{max-width:1272px;margin:0 auto 16px;padding:14px 16px;border:1px solid #c5e0eb;border-radius:16px;background:#edf6fa;color:var(--stage6-navy);display:flex;align-items:flex-start;gap:12px}.student-pin-once>div{display:grid;gap:4px}.student-pin-once span{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:24px;letter-spacing:.12em;font-weight:900}.student-pin-once small{color:var(--stage6-muted)}.student-access-status-list{display:grid}.student-access-status-row{display:grid;grid-template-columns:minmax(220px,1.4fr) 110px 110px 130px;gap:10px;align-items:center;padding:12px 2px;border-top:1px solid var(--stage6-line)}.student-access-status-row:first-child{border-top:0}.student-access-status-row>div{display:grid;gap:3px}.student-access-status-row strong{font-size:13px}.student-access-status-row small{font-size:11px;color:var(--stage6-muted)}.student-access-status-row button{border:1px solid var(--stage6-line);background:#fff;color:var(--stage6-navy);border-radius:10px;padding:8px 10px;font-size:11px;font-weight:850;display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer}.access-pill{width:max-content;border-radius:999px;padding:6px 8px;background:#f2f5f7;color:var(--stage6-muted);font-size:9px;font-weight:900}.access-pill.ready{background:#e9f3f7;color:var(--stage6-navy)}.access-pill.locked{background:#fff1ed;color:#934b40}@media(max-width:760px){.student-access-status-row{grid-template-columns:minmax(0,1fr) auto}.student-access-status-row>span{grid-row:2}.student-access-status-row button{grid-column:2;grid-row:1/3}}
