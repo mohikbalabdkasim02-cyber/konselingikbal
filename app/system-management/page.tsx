@@ -362,7 +362,10 @@ export default function SystemManagementPage() {
     try {
       const form = new FormData();
       form.append("file", file);
-      const response = await fetch("/api/system/import-preview", { method: "POST", body: form });
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Sesi staff tidak tersedia.");
+      const response = await fetch("/api/system/import-preview", { method: "POST", body: form, headers: { Authorization: `Bearer ${accessToken}` } });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "File belum dapat dibaca.");
       setImportRows(data.rows ?? []);
