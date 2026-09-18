@@ -48,7 +48,7 @@ export type StudentReportBundle = {
   needSignals: UnknownRow[];
 };
 
-function asText(value: unknown) {
+function asText(value: unknown): string {
   if (value === null || value === undefined || value === "") return "-";
   if (Array.isArray(value)) return value.map(asText).join("; ");
   if (typeof value === "object") return JSON.stringify(value);
