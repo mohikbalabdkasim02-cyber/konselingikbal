@@ -88,7 +88,7 @@ begin
 
   insert into public.student_auth_links(student_id, auth_user_id)
   values (p_student_id, auth.uid())
-  on conflict (student_id) do update
+  on conflict on constraint student_auth_links_pkey do update
   set
     auth_user_id = excluded.auth_user_id,
     created_at = now();
