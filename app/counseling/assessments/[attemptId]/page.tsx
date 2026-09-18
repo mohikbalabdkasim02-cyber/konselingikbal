@@ -30,9 +30,9 @@ const FIELD_LABELS:Record<string,Array<[string,string]>>={
 };
 
 function answerDisplay(value:unknown, options?:Array<{value:string;label:string}>){
-  if(Array.isArray(value)) return value.map(v=>options?.find(o=>o.value===String(v))?.label??String(v)).join("; ");
-  if(typeof value==="string") return options?.find(o=>o.value===value)?.label??value;
-  if(value===null||value===undefined) return "—";
+  if(Array.isArray(value)) return value.length?value.map(v=>options?.find(o=>o.value===String(v))?.label??String(v)).join("; "):"Belum dijawab";
+  if(typeof value==="string") return value?(options?.find(o=>o.value===value)?.label??value):"Belum dijawab";
+  if(value===null||value===undefined) return "Belum dijawab";
   return JSON.stringify(value);
 }
 
