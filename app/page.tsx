@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ChevronRight, ClipboardList, Home, LogOut, Search, ShieldCheck, UserRound, Users } from "lucide-react";
+import { ChevronRight, ClipboardList, Home, LogOut, Search, Settings, ShieldCheck, UserRound, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 
@@ -284,6 +284,9 @@ export default function HomePage() {
           </Link>
           <Link href="/student/login">
             <UserRound /> Portal Siswa
+          </Link>
+          <Link href="/system-management">
+            <Settings /> Manajemen Sistem
           </Link>
         </nav>
         <div className="stage6-sidebar-foot">
