@@ -127,6 +127,46 @@ revoke all on function public.admin_generate_student_pin(uuid) from public;
 revoke all on function public.admin_generate_student_pin(uuid) from anon;
 grant execute on function public.admin_generate_student_pin(uuid) to authenticated;
 
+create or replace function public.admin_purge_student(p_student_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $
+begin
+  if not private.is_staff() then
+    raise exception 'STAFF_REQUIRED';
+  end if;
+
+  if exists(select 1 from public.assessment_attempts where student_id=p_student_id)
+    or exists(select 1 from public.counseling_sessions where student_id=p_student_id)
+    or exists(select 1 from public.student_documents where student_id=p_student_id)
+    or exists(select 1 from public.life_aspects where student_id=p_student_id)
+    or exists(select 1 from public.milestones where student_id=p_student_id)
+    or exists(select 1 from public.roadmap_items where student_id=p_student_id)
+    or exists(select 1 from public.assessment_action_plans where student_id=p_student_id)
+    or exists(select 1 from public.student_career_choices where student_id=p_student_id)
+    or exists(select 1 from public.career_portfolio_items where student_id=p_student_id)
+    or exists(select 1 from public.follow_ups where student_id=p_student_id)
+    or exists(select 1 from public.student_outcomes where student_id=p_student_id)
+    or exists(select 1 from public.consultation_requests where student_id=p_student_id)
+  then
+    raise exception 'STUDENT_HAS_HISTORY_USE_ARCHIVE';
+  end if;
+
+  delete from public.student_auth_links where student_id=p_student_id;
+  delete from public.student_access_credentials where student_id=p_student_id;
+  delete from public.student_enrollments where student_id=p_student_id;
+  delete from public.students where id=p_student_id;
+
+  return true;
+end;
+$;
+
+revoke all on function public.admin_purge_student(uuid) from public;
+revoke all on function public.admin_purge_student(uuid) from anon;
+grant execute on function public.admin_purge_student(uuid) to authenticated;
+
 create or replace function public.admin_import_students(
   p_rows jsonb,
   p_file_name text default null,
