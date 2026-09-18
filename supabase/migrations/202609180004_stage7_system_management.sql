@@ -132,7 +132,7 @@ returns boolean
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 begin
   if not private.is_staff() then
     raise exception 'STAFF_REQUIRED';
@@ -161,7 +161,7 @@ begin
 
   return true;
 end;
-$;
+$$;
 
 revoke all on function public.admin_purge_student(uuid) from public;
 revoke all on function public.admin_purge_student(uuid) from anon;
