@@ -170,6 +170,11 @@ export default function SystemManagementPage() {
     students.filter((s) => s.is_active).forEach((s) => map.set(s.class_id, (map.get(s.class_id) ?? 0) + 1));
     return map;
   }, [students]);
+  const classTotalCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    students.forEach((s) => map.set(s.class_id, (map.get(s.class_id) ?? 0) + 1));
+    return map;
+  }, [students]);
 
   const filteredStudents = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -261,6 +266,21 @@ export default function SystemManagementPage() {
     } finally { setSaving(false); }
   }
 
+  async function purgeStudent(student: StudentRow) {
+    if (student.is_active) return setMessage("Arsipkan siswa terlebih dahulu sebelum mencoba hapus permanen.");
+    const confirmation = window.prompt(`Ketik HAPUS untuk menghapus permanen ${student.full_name}. Sistem akan menolak jika siswa sudah memiliki riwayat pendampingan.`);
+    if (confirmation !== "HAPUS") return;
+    setSaving(true); setMessage("");
+    try {
+      const { error } = await supabase.rpc("admin_purge_student", { p_student_id: student.id });
+      if (error) throw error;
+      setMessage("Data siswa tanpa riwayat berhasil dihapus permanen.");
+      await loadAll();
+    } catch (error) {
+      setMessage(toUserMessage(error));
+    } finally { setSaving(false); }
+  }
+
   async function resetStudentPin(student: StudentRow) {
     if (!window.confirm(`Buat PIN baru untuk ${student.full_name}? Sesi Portal Siswa lama akan dilepas.`)) return;
     setSaving(true); setGeneratedPin(null); setMessage("");
@@ -303,8 +323,8 @@ export default function SystemManagementPage() {
   }
 
   async function removeClass(row: ClassRow) {
-    const count = classCounts.get(row.id) ?? 0;
-    if (count > 0) return setMessage(`Kelas ${row.name} masih memiliki ${count} siswa aktif. Pindahkan atau arsipkan siswa terlebih dahulu.`);
+    const count = classTotalCounts.get(row.id) ?? 0;
+    if (count > 0) return setMessage(`Kelas ${row.name} masih memiliki ${count} siswa. Pindahkan atau hapus/arsipkan seluruh siswa terlebih dahulu.`);
     if (!window.confirm(`Hapus permanen kelas ${row.name}? Tindakan ini hanya diizinkan karena kelas tidak memiliki siswa aktif.`)) return;
     setSaving(true); setMessage("");
     try {
@@ -550,6 +570,7 @@ export default function SystemManagementPage() {
                 <button title="PDF laporan" onClick={() => downloadStudentReport(student)} disabled={reporting}><Download size={15}/></button>
                 {student.is_active && <button title="Reset PIN" onClick={() => resetStudentPin(student)}><KeyRound size={15}/></button>}
                 <button className={student.is_active ? "danger" : "restore"} onClick={() => toggleStudent(student)}>{student.is_active ? "Arsipkan" : "Aktifkan"}</button>
+                {!student.is_active&&<button className="danger" title="Hapus permanen hanya jika belum memiliki riwayat pendampingan" onClick={()=>purgeStudent(student)}><Trash2 size={14}/></button>}
               </div>
             </article>)}</div>
           </section>
@@ -570,8 +591,8 @@ export default function SystemManagementPage() {
           <section className="system-card">
             <div className="system-card-head"><div><span>{activeYear?.name ?? "TAHUN AKTIF"}</span><h2>{activeClasses.length} kelas aktif</h2></div><GraduationCap size={22}/></div>
             <div className="class-admin-list">{activeClasses.map((row) => <div key={row.id}>
-              <div><strong>{row.name}</strong><span>Kelas {row.grade} • {classCounts.get(row.id) ?? 0} siswa aktif</span></div>
-              <div><button onClick={() => setClassForm({ id: row.id, name: row.name, grade: String(row.grade), slug: row.slug })}>Edit</button><button className="danger" disabled={(classCounts.get(row.id) ?? 0) > 0} onClick={() => removeClass(row)}><Trash2 size={14}/> Hapus</button></div>
+              <div><strong>{row.name}</strong><span>Kelas {row.grade} • {classCounts.get(row.id) ?? 0} siswa aktif • {classTotalCounts.get(row.id) ?? 0} total</span></div>
+              <div><button onClick={() => setClassForm({ id: row.id, name: row.name, grade: String(row.grade), slug: row.slug })}>Edit</button><button className="danger" disabled={(classTotalCounts.get(row.id) ?? 0) > 0} onClick={() => removeClass(row)}><Trash2 size={14}/> Hapus</button></div>
             </div>)}</div>
           </section>
         </div>
