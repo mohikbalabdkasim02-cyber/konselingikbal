@@ -82,27 +82,38 @@ export default function StudentWorkspacePage(){
 
   async function uploadFile(file:File){
     setUploading(true);setRetryFile(file);setMessage("");setUploadPhase("validating");setUploadDetail(file.name);
-    let storagePath=""; let createdVersionId:string|undefined;
+    let storagePath=""; let createdVersionId:string|undefined; let createdDocumentId:string|undefined;
     try{
       const {mimeType}=validateProposalFile(file);
       let currentDoc=doc;
-      if(!currentDoc){const res=await supabase.from("student_documents").insert({student_id:studentId,document_type:"proposal_hidup",status:"uploaded",latest_version:0}).select("id,status,latest_version").single();if(res.error)throw res.error;currentDoc=res.data as StudentDocument;setDoc(currentDoc)}
+      if(!currentDoc){
+        const res=await supabase.from("student_documents").insert({student_id:studentId,document_type:"proposal_hidup",status:"uploaded",latest_version:0}).select("id,status,latest_version").single();
+        if(res.error)throw res.error;
+        currentDoc=res.data as StudentDocument;
+        createdDocumentId=currentDoc.id;
+        setDoc(currentDoc);
+      }
       const nextVersion=(currentDoc.latest_version||0)+1;
       storagePath=`${studentId}/proposal_hidup/v${nextVersion}-${Date.now()}-${safeStorageFileName(file.name)}`;
-      setUploadPhase("uploading");setUploadDetail("File dikirim dengan retry otomatis jika koneksi terputus.");
+      setUploadPhase("uploading");setUploadDetail("Mengirim file ke penyimpanan aman. Jika koneksi terputus, sistem akan mencoba ulang otomatis.");
       await uploadStorageWithRetry({supabase,bucket:"student-proposals",path:storagePath,file,mimeType,attempts:3});
-      setUploadPhase("recording");setUploadDetail("Mencatat versi proposal ke profil siswa.");
+      setUploadPhase("recording");setUploadDetail("Upload selesai. Mencatat versi proposal ke profil siswa.");
       const {data:userData}=await supabase.auth.getUser();
       const v=await supabase.from("document_versions").insert({document_id:currentDoc.id,version_number:nextVersion,storage_path:storagePath,file_name:file.name,mime_type:mimeType,file_size:file.size,uploaded_by:userData.user?.id??null,extraction_status:mimeType===DOCX_MIME?"pending":"unsupported"}).select("id,version_number,storage_path,file_name,mime_type,file_size,uploaded_at,notes,extraction_status,extracted_at,extracted_data,extraction_notes").single();
       if(v.error)throw v.error; createdVersionId=v.data.id;
       const upd=await supabase.from("student_documents").update({latest_version:nextVersion,status:"uploaded"}).eq("id",currentDoc.id);if(upd.error)throw upd.error;
       setUploadPhase("complete");setUploadDetail(`Versi ${nextVersion} tersimpan.`);setRetryFile(null);
-      if(mimeType===DOCX_MIME){setMessage(`Proposal versi ${nextVersion} berhasil diunggah. Sedang membaca isinya…`);await analyzeVersion(v.data as DocumentVersion,true)}else{setMessage(`Proposal versi ${nextVersion} berhasil diunggah. PDF/DOC tersimpan dan bisa dilihat. Pembacaan otomatis saat ini digunakan untuk DOCX.`);await loadWorkspace()}
+      if(mimeType===DOCX_MIME){setMessage(`Proposal versi ${nextVersion} berhasil diunggah. Sedang membaca isinya…`);await analyzeVersion(v.data as DocumentVersion,true)}else{setMessage(`Proposal versi ${nextVersion} berhasil diunggah. PDF/DOC tersimpan dan bisa dilihat. File Canva/PowerPoint dapat diekspor ke PDF lalu diunggah di sini.`);await loadWorkspace()}
       setActiveTab("overview");
     }catch(error){
       if(createdVersionId)await supabase.from("document_versions").delete().eq("id",createdVersionId);
       if(storagePath)await supabase.storage.from("student-proposals").remove([storagePath]);
-      setUploadPhase("error");setUploadDetail(toUserMessage(error));setMessage(toUserMessage(error));
+      if(createdDocumentId){
+        await supabase.from("student_documents").delete().eq("id",createdDocumentId).eq("latest_version",0);
+        setDoc(null);
+      }
+      const userMessage=toUserMessage(error);
+      setUploadPhase("error");setUploadDetail(userMessage);setMessage(userMessage);
     }finally{setUploading(false)}
   }
   async function uploadProposal(event:ChangeEvent<HTMLInputElement>){const file=event.target.files?.[0];event.target.value="";if(file)await uploadFile(file)}
