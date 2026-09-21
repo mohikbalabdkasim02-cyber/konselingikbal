@@ -5,6 +5,8 @@ export const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordproc
 export const PDF_MIME = "application/pdf";
 export const DOC_MIME = "application/msword";
 
+const SUPABASE_URL = "https://pmfmrybzdkfmmmsdlddj.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_a953yOUs9wPEmE_6L0q2mA_8kyqflUn";
 const ALLOWED_EXTENSIONS = ["pdf", "docx", "doc"] as const;
 const ALLOWED_MIMES = [PDF_MIME, DOCX_MIME, DOC_MIME];
 
@@ -37,6 +39,60 @@ function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function encodeStoragePath(path: string) {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
+async function getFreshAccessToken(supabase: SupabaseClient) {
+  let { data: { session }, error } = await supabase.auth.getSession();
+  if (error) throw error;
+
+  const expiresSoon = Boolean(session?.expires_at && session.expires_at * 1000 <= Date.now() + 60_000);
+  if (expiresSoon) {
+    const refreshed = await supabase.auth.refreshSession();
+    if (refreshed.error) throw refreshed.error;
+    session = refreshed.data.session;
+  }
+
+  if (!session?.access_token) {
+    throw new Error("Unauthorized: sesi login tidak tersedia. Silakan masuk ulang.");
+  }
+  return session.access_token;
+}
+
+async function uploadOnce(args: {
+  token: string;
+  bucket: string;
+  path: string;
+  file: File;
+  mimeType: string;
+}) {
+  const { token, bucket, path, file, mimeType } = args;
+  const endpoint = `${SUPABASE_URL}/storage/v1/object/${encodeURIComponent(bucket)}/${encodeStoragePath(path)}`;
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${token}`,
+      "Content-Type": mimeType,
+      "cache-control": "3600",
+      "x-upsert": "true",
+    },
+    body: file,
+  });
+
+  if (response.ok) return;
+
+  let detail = "";
+  try {
+    detail = await response.text();
+  } catch {
+    detail = "";
+  }
+  throw new Error(`Storage upload gagal (${response.status}). ${detail || response.statusText}`);
+}
+
 export async function uploadStorageWithRetry(args: {
   supabase: SupabaseClient;
   bucket: string;
@@ -47,19 +103,22 @@ export async function uploadStorageWithRetry(args: {
 }): Promise<void> {
   const { supabase, bucket, path, file, mimeType, attempts = 3 } = args;
   let lastError: unknown;
+  let token = await getFreshAccessToken(supabase);
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      const { error } = await supabase.storage.from(bucket).upload(path, file, {
-        contentType: mimeType,
-        cacheControl: "3600",
-        upsert: true,
-      });
-      if (error) throw error;
+      await uploadOnce({ token, bucket, path, file, mimeType });
       return;
     } catch (error) {
       lastError = error;
-      if (attempt < attempts) await wait(650 * attempt);
+
+      // Refresh once if the server reports an authentication failure.
+      const message = error instanceof Error ? error.message : "";
+      if ((message.includes("(401)") || message.includes("(403)")) && attempt < attempts) {
+        token = await getFreshAccessToken(supabase);
+      }
+
+      if (attempt < attempts) await wait(700 * attempt);
     }
   }
 

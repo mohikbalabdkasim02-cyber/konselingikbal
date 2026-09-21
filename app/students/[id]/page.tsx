@@ -3,12 +3,13 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, CheckCircle2, Download, FileSearch, FileText, Flag, GraduationCap, Loader2, Map, RefreshCw, Save, Sparkles, Target, Upload, UserRound } from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle2, ChevronRight, Download, FileSearch, FileText, Flag, GraduationCap, Loader2, Map, RefreshCw, Save, Sparkles, Target, Upload, UserRound } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { parseProposalText, type ProposalExtraction } from "@/lib/proposal-parser";
 import { DOCX_MIME, safeStorageFileName, uploadStorageWithRetry, validateProposalFile, type UploadPhase } from "@/lib/upload";
 import { toUserMessage } from "@/lib/errors";
 import { NetworkState } from "@/components/common/NetworkState";
+import { downloadStudentReportPdf, loadStudentReportBundle } from "@/lib/student-report";
 
  type Student = { id:string; full_name:string; gender:"L"|"P"|null; email:string|null; nis:string|null; nisn:string|null; classes:{name:string;slug:string;grade:number}|null };
  type Profile = { student_id:string; expertise:string|null; career_direction:string|null; education_target:string|null; journey_stage:string; role_model:string|null; personal_brand:string|null; major_target:string|null; campus_target:string|null; mentor:string|null; summary_notes:string|null };
@@ -17,6 +18,7 @@ import { NetworkState } from "@/components/common/NetworkState";
  type LifeAspect = { id?:string; category:string; content:string; status:string; sort_order:number };
  type Milestone = { id:string; title:string; description:string|null; target_date:string|null; status:string; sort_order:number };
  type RoadmapItem = { id:string; title:string; description:string|null; mentor:string|null; target_date:string|null; status:string; sort_order:number };
+ type AssessmentOverview = { id:string; status:string; submitted_at:string|null; assessment_definitions:{title:string;domain:string;slug:string;version:number}|null };
 
 const LIFE_CATEGORIES = [
   ["spiritual","Spiritual & Tazkiyatunnafs"],["islamic_studies","Islamic Studies"],["ibadah","Ibadah"],["leadership","Leadership & Citizenship"],
@@ -45,8 +47,8 @@ function normalizeExtraction(value: unknown): ProposalExtraction | null {
 export default function StudentWorkspacePage(){
   const {id:studentId}=useParams<{id:string}>(); const router=useRouter();
   const [student,setStudent]=useState<Student|null>(null); const [profile,setProfile]=useState<Profile|null>(null); const [doc,setDoc]=useState<StudentDocument|null>(null);
-  const [versions,setVersions]=useState<DocumentVersion[]>([]); const [lifeAspects,setLifeAspects]=useState<LifeAspect[]>([]); const [milestones,setMilestones]=useState<Milestone[]>([]); const [roadmap,setRoadmap]=useState<RoadmapItem[]>([]);
-  const [activeTab,setActiveTab]=useState("overview"); const [loading,setLoading]=useState(true); const [saving,setSaving]=useState(false); const [uploading,setUploading]=useState(false); const [analyzing,setAnalyzing]=useState(false);
+  const [versions,setVersions]=useState<DocumentVersion[]>([]); const [lifeAspects,setLifeAspects]=useState<LifeAspect[]>([]); const [milestones,setMilestones]=useState<Milestone[]>([]); const [roadmap,setRoadmap]=useState<RoadmapItem[]>([]); const [assessments,setAssessments]=useState<AssessmentOverview[]>([]);
+  const [activeTab,setActiveTab]=useState("overview"); const [loading,setLoading]=useState(true); const [saving,setSaving]=useState(false); const [uploading,setUploading]=useState(false); const [analyzing,setAnalyzing]=useState(false); const [reporting,setReporting]=useState(false);
   const [message,setMessage]=useState(""); const [previewUrl,setPreviewUrl]=useState<string|null>(null); const [docxText,setDocxText]=useState<string|null>(null); const [newMilestone,setNewMilestone]=useState(""); const [newRoadmap,setNewRoadmap]=useState("");
   const [uploadPhase,setUploadPhase]=useState<UploadPhase>("idle"); const [uploadDetail,setUploadDetail]=useState(""); const [retryFile,setRetryFile]=useState<File|null>(null);
 
@@ -57,17 +59,18 @@ export default function StudentWorkspacePage(){
   async function loadWorkspace(){
     setLoading(true);
     try{
-      const [s,p,d,l,m,r]=await Promise.all([
+      const [s,p,d,l,m,r,a]=await Promise.all([
         supabase.from("students").select("id,full_name,gender,email,nis,nisn,classes(name,slug,grade)").eq("id",studentId).single(),
         supabase.from("student_profiles").select("*").eq("student_id",studentId).maybeSingle(),
         supabase.from("student_documents").select("id,status,latest_version").eq("student_id",studentId).eq("document_type","proposal_hidup").maybeSingle(),
         supabase.from("life_aspects").select("id,category,content,status,sort_order").eq("student_id",studentId).order("sort_order"),
         supabase.from("milestones").select("id,title,description,target_date,status,sort_order").eq("student_id",studentId).order("sort_order"),
         supabase.from("roadmap_items").select("id,title,description,mentor,target_date,status,sort_order").eq("student_id",studentId).order("sort_order"),
+        supabase.from("assessment_attempts").select("id,status,submitted_at,assessment_definitions(title,domain,slug,version)").eq("student_id",studentId).order("started_at",{ascending:false}),
       ]);
       if(s.error)throw s.error;
       setStudent(s.data as unknown as Student); setProfile((p.data as Profile|null)??({student_id:studentId,...EMPTY_PROFILE} as Profile)); setDoc(d.data as StudentDocument|null);
-      setLifeAspects(normalizeLife((l.data??[]) as LifeAspect[])); setMilestones((m.data??[]) as Milestone[]); setRoadmap((r.data??[]) as RoadmapItem[]);
+      setLifeAspects(normalizeLife((l.data??[]) as LifeAspect[])); setMilestones((m.data??[]) as Milestone[]); setRoadmap((r.data??[]) as RoadmapItem[]); setAssessments((a.data??[]) as unknown as AssessmentOverview[]);
       if(d.data?.id)await loadVersions(d.data.id);else setVersions([]);
     }catch(error){setMessage(toUserMessage(error));}finally{setLoading(false);}
   }
@@ -79,27 +82,38 @@ export default function StudentWorkspacePage(){
 
   async function uploadFile(file:File){
     setUploading(true);setRetryFile(file);setMessage("");setUploadPhase("validating");setUploadDetail(file.name);
-    let storagePath=""; let createdVersionId:string|undefined;
+    let storagePath=""; let createdVersionId:string|undefined; let createdDocumentId:string|undefined;
     try{
       const {mimeType}=validateProposalFile(file);
       let currentDoc=doc;
-      if(!currentDoc){const res=await supabase.from("student_documents").insert({student_id:studentId,document_type:"proposal_hidup",status:"uploaded",latest_version:0}).select("id,status,latest_version").single();if(res.error)throw res.error;currentDoc=res.data as StudentDocument;setDoc(currentDoc)}
+      if(!currentDoc){
+        const res=await supabase.from("student_documents").insert({student_id:studentId,document_type:"proposal_hidup",status:"uploaded",latest_version:0}).select("id,status,latest_version").single();
+        if(res.error)throw res.error;
+        currentDoc=res.data as StudentDocument;
+        createdDocumentId=currentDoc.id;
+        setDoc(currentDoc);
+      }
       const nextVersion=(currentDoc.latest_version||0)+1;
       storagePath=`${studentId}/proposal_hidup/v${nextVersion}-${Date.now()}-${safeStorageFileName(file.name)}`;
-      setUploadPhase("uploading");setUploadDetail("File dikirim dengan retry otomatis jika koneksi terputus.");
+      setUploadPhase("uploading");setUploadDetail("Mengirim file ke penyimpanan aman. Jika koneksi terputus, sistem akan mencoba ulang otomatis.");
       await uploadStorageWithRetry({supabase,bucket:"student-proposals",path:storagePath,file,mimeType,attempts:3});
-      setUploadPhase("recording");setUploadDetail("Mencatat versi proposal ke profil siswa.");
+      setUploadPhase("recording");setUploadDetail("Upload selesai. Mencatat versi proposal ke profil siswa.");
       const {data:userData}=await supabase.auth.getUser();
       const v=await supabase.from("document_versions").insert({document_id:currentDoc.id,version_number:nextVersion,storage_path:storagePath,file_name:file.name,mime_type:mimeType,file_size:file.size,uploaded_by:userData.user?.id??null,extraction_status:mimeType===DOCX_MIME?"pending":"unsupported"}).select("id,version_number,storage_path,file_name,mime_type,file_size,uploaded_at,notes,extraction_status,extracted_at,extracted_data,extraction_notes").single();
       if(v.error)throw v.error; createdVersionId=v.data.id;
       const upd=await supabase.from("student_documents").update({latest_version:nextVersion,status:"uploaded"}).eq("id",currentDoc.id);if(upd.error)throw upd.error;
       setUploadPhase("complete");setUploadDetail(`Versi ${nextVersion} tersimpan.`);setRetryFile(null);
-      if(mimeType===DOCX_MIME){setMessage(`Proposal versi ${nextVersion} berhasil diunggah. Sedang membaca isinya…`);await analyzeVersion(v.data as DocumentVersion,true)}else{setMessage(`Proposal versi ${nextVersion} berhasil diunggah. PDF/DOC tersimpan dan bisa dilihat. Pembacaan otomatis saat ini digunakan untuk DOCX.`);await loadWorkspace()}
+      if(mimeType===DOCX_MIME){setMessage(`Proposal versi ${nextVersion} berhasil diunggah. Sedang membaca isinya…`);await analyzeVersion(v.data as DocumentVersion,true)}else{setMessage(`Proposal versi ${nextVersion} berhasil diunggah. PDF/DOC tersimpan dan bisa dilihat. File Canva/PowerPoint dapat diekspor ke PDF lalu diunggah di sini.`);await loadWorkspace()}
       setActiveTab("overview");
     }catch(error){
       if(createdVersionId)await supabase.from("document_versions").delete().eq("id",createdVersionId);
       if(storagePath)await supabase.storage.from("student-proposals").remove([storagePath]);
-      setUploadPhase("error");setUploadDetail(toUserMessage(error));setMessage(toUserMessage(error));
+      if(createdDocumentId){
+        await supabase.from("student_documents").delete().eq("id",createdDocumentId).eq("latest_version",0);
+        setDoc(null);
+      }
+      const userMessage=toUserMessage(error);
+      setUploadPhase("error");setUploadDetail(userMessage);setMessage(userMessage);
     }finally{setUploading(false)}
   }
   async function uploadProposal(event:ChangeEvent<HTMLInputElement>){const file=event.target.files?.[0];event.target.value="";if(file)await uploadFile(file)}
@@ -125,6 +139,17 @@ export default function StudentWorkspacePage(){
   async function openVersion(version:DocumentVersion){setMessage("");setDocxText(null);setPreviewUrl(null);try{if(version.mime_type===DOCX_MIME){const dl=await supabase.storage.from("student-proposals").download(version.storage_path);if(dl.error||!dl.data)throw dl.error??new Error("Dokumen tidak dapat dibuka.");const mammoth=await import("mammoth");const raw=await mammoth.extractRawText({arrayBuffer:await dl.data.arrayBuffer()});setDocxText(raw.value);return}const signed=await supabase.storage.from("student-proposals").createSignedUrl(version.storage_path,3600);if(signed.error)throw signed.error;setPreviewUrl(signed.data.signedUrl);}catch(e){setMessage(toUserMessage(e))}}
   async function downloadVersion(version:DocumentVersion){try{const dl=await supabase.storage.from("student-proposals").download(version.storage_path);if(dl.error||!dl.data)throw dl.error??new Error("Download gagal.");const href=URL.createObjectURL(dl.data);const a=document.createElement("a");a.href=href;a.download=version.file_name;a.click();URL.revokeObjectURL(href);}catch(e){setMessage(toUserMessage(e))}}
 
+  async function downloadComprehensiveReport(){
+    setReporting(true);setMessage("");
+    try{
+      const bundle=await loadStudentReportBundle(supabase,studentId);
+      const settingRes=await supabase.from("system_settings").select("value").eq("key","school_profile").maybeSingle();
+      const setting=(settingRes.data?.value??{}) as {report_title?:string;report_footer?:string};
+      await downloadStudentReportPdf(bundle,{reportTitle:setting.report_title,footer:setting.report_footer,includeDetailedAnswers:true});
+      setMessage("PDF laporan komprehensif siswa berhasil dibuat.");
+    }catch(e){setMessage(toUserMessage(e))}finally{setReporting(false)}
+  }
+
   async function addMilestone(){if(!newMilestone.trim())return;const {error}=await supabase.from("milestones").insert({student_id:studentId,title:newMilestone.trim(),sort_order:milestones.length});if(error)return setMessage(toUserMessage(error));setNewMilestone("");await loadWorkspace()}
   async function toggleMilestone(item:Milestone){const next=item.status==="completed"?"planned":"completed";const {error}=await supabase.from("milestones").update({status:next,completed_at:next==="completed"?new Date().toISOString():null}).eq("id",item.id);if(error)setMessage(toUserMessage(error));else await loadWorkspace()}
   async function addRoadmapItem(){if(!newRoadmap.trim())return;const {error}=await supabase.from("roadmap_items").insert({student_id:studentId,title:newRoadmap.trim(),sort_order:roadmap.length});if(error)return setMessage(toUserMessage(error));setNewRoadmap("");await loadWorkspace()}
@@ -137,14 +162,16 @@ export default function StudentWorkspacePage(){
 
   return <main className="student-workspace-page">
     <header className="student-workspace-topbar"><Link href="/" className="back-link"><ArrowLeft size={18}/> Dashboard</Link><div className="workspace-brand">Bina Insan <strong>LifeMap</strong></div></header>
-    <section className="student-hero"><div className="student-identity"><div className="big-avatar">{student.full_name.slice(0,2).toUpperCase()}</div><div><p className="eyebrow">DETAIL SISWA</p><h1>{student.full_name}</h1><p>{student.classes?.name??"Kelas belum tersedia"} · {student.gender==="L"?"Laki-laki":student.gender==="P"?"Perempuan":"-"}</p></div></div><div className="hero-actions">{latest?.mime_type===DOCX_MIME&&<button className="smart-read-btn" onClick={()=>analyzeVersion(latest)} disabled={analyzing}><Sparkles size={17}/>{analyzing?"Membaca…":"Baca Proposal"}</button>}<label className="upload-btn"><Upload size={17}/>{uploading?"Mengunggah...":latest?"Upload Versi Baru":"Upload Proposal"}<input type="file" accept=".pdf,.doc,.docx" onChange={uploadProposal} disabled={uploading}/></label></div></section>
+    <section className="student-hero"><div className="student-identity"><div className="big-avatar">{student.full_name.slice(0,2).toUpperCase()}</div><div><p className="eyebrow">DETAIL SISWA</p><h1>{student.full_name}</h1><p>{student.classes?.name??"Kelas belum tersedia"} · {student.gender==="L"?"Laki-laki":student.gender==="P"?"Perempuan":"-"}</p></div></div><div className="hero-actions"><button className="refresh-btn" onClick={downloadComprehensiveReport} disabled={reporting}><Download size={16}/>{reporting?"Menyiapkan PDF...":"Download Laporan PDF"}</button>{latest?.mime_type===DOCX_MIME&&<button className="smart-read-btn" onClick={()=>analyzeVersion(latest)} disabled={analyzing}><Sparkles size={17}/>{analyzing?"Membaca…":"Baca Proposal"}</button>}<label className="upload-btn"><Upload size={17}/>{uploading?"Mengunggah...":latest?"Upload Versi Baru":"Upload Proposal"}<input type="file" accept=".pdf,.doc,.docx" onChange={uploadProposal} disabled={uploading}/></label></div></section>
     <NetworkState phase={uploadPhase} detail={uploadDetail} onRetry={retryFile?()=>uploadFile(retryFile):undefined}/>
     {message&&<div className="workspace-message">{message}</div>}
     {extraction&&<section className={latest?.extraction_status==="needs_review"?"smart-reader-card review":"smart-reader-card"}><div className="smart-reader-head"><div className="smart-reader-icon"><Sparkles size={20}/></div><div><p className="eyebrow">SMART PROPOSAL READER</p><h2>{latest?.extraction_status==="needs_review"?"Data ditemukan — beberapa bagian perlu dicek":"Proposal sudah dipetakan"}</h2><p>Dashboard mengisi bagian yang kosong dari isi dokumen. Data manual yang sudah ada tidak ditimpa.</p></div></div><div className="smart-reader-summary"><div><strong>{extraction.found.length}</strong><span>kelompok data ditemukan</span></div><div><strong>{extraction.lifeAspects.length}</strong><span>aspek Life Map</span></div><div><strong>{extraction.needsReview.length}</strong><span>perlu dicek</span></div></div><div className="smart-reader-tags">{extraction.found.map(x=><span className="found-tag" key={x}><CheckCircle2 size={14}/>{x}</span>)}{extraction.needsReview.map(x=><span className="review-tag" key={x}>{x}</span>)}</div></section>}
     <div className="journey-strip">{journeySteps.map((step,i)=><div key={step} className={progress[i]?"journey-node done":"journey-node"}><span>{progress[i]?<CheckCircle2 size={15}/>:i+1}</span><strong>{step}</strong></div>)}</div>
-    <nav className="workspace-tabs">{[["overview","Overview"],["lifemap","Life Map"],["milestone","Milestone"],["roadmap","Roadmap"],["proposal","Proposal"]].map(([id,label])=><button key={id} className={activeTab===id?"active":""} onClick={()=>setActiveTab(id)}>{label}</button>)}</nav>
+    <nav className="workspace-tabs">{[["overview","Overview"],["assessment","Asesmen"],["lifemap","Life Map"],["milestone","Milestone"],["roadmap","Roadmap"],["proposal","Proposal"]].map(([id,label])=><button key={id} className={activeTab===id?"active":""} onClick={()=>setActiveTab(id)}>{label}</button>)}</nav>
 
     {activeTab==="overview"&&<section className="workspace-grid"><div className="workspace-card span-2"><div className="card-title"><UserRound size={18}/><div><p className="eyebrow">LIFE & CAREER PROFILE</p><h2>Arah utama siswa</h2></div><button className="small-primary" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={16}/>:<Save size={16}/>} Simpan</button></div><div className="profile-form-grid"><Field label="Expertise" value={profile.expertise??""} onChange={v=>setProfile({...profile,expertise:v})}/><Field label="Arah Karier" value={profile.career_direction??""} onChange={v=>setProfile({...profile,career_direction:v})}/><Field label="Target Pendidikan" value={profile.education_target??""} onChange={v=>setProfile({...profile,education_target:v})}/><Field label="Target Jurusan" value={profile.major_target??""} onChange={v=>setProfile({...profile,major_target:v})}/><Field label="Target Kampus" value={profile.campus_target??""} onChange={v=>setProfile({...profile,campus_target:v})}/><Field label="Mentor" value={profile.mentor??""} onChange={v=>setProfile({...profile,mentor:v})}/><Field label="Role Model" value={profile.role_model??""} onChange={v=>setProfile({...profile,role_model:v})}/><Field label="Prestasi / Personal Brand" value={profile.personal_brand??""} onChange={v=>setProfile({...profile,personal_brand:v})}/><label className="profile-field"><span>Tahap Perjalanan</span><select value={profile.journey_stage} onChange={e=>setProfile({...profile,journey_stage:e.target.value})}><option value="belum_dipetakan">Belum dipetakan</option><option value="eksplorasi">Eksplorasi</option><option value="sudah_punya_arah">Sudah punya arah</option><option value="persiapan">Persiapan</option><option value="on_track">On track</option><option value="perlu_pendampingan">Perlu pendampingan</option></select></label></div></div><div className="workspace-card"><div className="card-title"><FileText size={18}/><div><p className="eyebrow">PROPOSAL HIDUP</p><h2>{latest?`Versi ${latest.version_number}`:"Belum ada file"}</h2></div></div>{latest?<><p className="file-name">{latest.file_name}</p><p className="soft-copy">{formatBytes(latest.file_size)} · {formatDate(latest.uploaded_at)}</p><div className="proposal-actions-stack"><button className="wide-secondary" onClick={()=>{setActiveTab("proposal");void openVersion(latest)}}>Buka proposal</button>{latest.mime_type===DOCX_MIME&&<button className="wide-smart" onClick={()=>analyzeVersion(latest)} disabled={analyzing}><FileSearch size={16}/>{analyzing?"Sedang membaca…":latest.extraction_status==="completed"||latest.extraction_status==="needs_review"?"Baca ulang & sinkronkan":"Baca & isi otomatis"}</button>}</div></>:<p className="soft-copy">Upload PDF atau Word untuk menghubungkan proposal hidup dengan profil siswa.</p>}</div><div className="workspace-card"><div className="card-title"><GraduationCap size={18}/><div><p className="eyebrow">DATA AKADEMIK</p><h2>{student.classes?.name}</h2></div></div><div className="mini-detail"><span>NIS</span><strong>{student.nis||"Belum valid"}</strong></div><div className="mini-detail"><span>NISN</span><strong>{student.nisn||"Belum valid"}</strong></div><div className="mini-detail"><span>Email</span><strong>{student.email||"-"}</strong></div></div></section>}
+
+    {activeTab==="assessment"&&<section className="workspace-card life-map-card"><div className="card-title"><FileSearch size={18}/><div><p className="eyebrow">ASESMEN SISWA</p><h2>Jawaban per soal & riwayat review</h2></div></div><p className="section-copy">Buka satu asesmen untuk melihat seluruh pertanyaan sesuai urutan, pilihan jawaban siswa, soal yang belum dijawab, serta catatan tindak lanjut Guru BK.</p><div className="student-assessment-history">{assessments.length?assessments.map((item,index)=><Link key={item.id} href={`/counseling/assessments/${item.id}`} className="student-assessment-history-row"><span className="aspect-index">{String(index+1).padStart(2,"0")}</span><div><strong>{item.assessment_definitions?.title??"Asesmen"}</strong><small>{item.submitted_at?formatDate(item.submitted_at):"Belum dikirim"} · {item.status==="reviewed"?"Sudah direview":item.status==="submitted"?"Perlu review":"Draft"}</small></div><ChevronRight size={18}/></Link>):<Empty text="Belum ada riwayat asesmen siswa."/>}</div></section>}
 
     {activeTab==="lifemap"&&<section className="workspace-card life-map-card"><div className="card-title"><Map size={18}/><div><p className="eyebrow">LIFE MAP</p><h2>Peta aspek hidup siswa</h2></div><button className="small-primary" onClick={saveLifeMap} disabled={saving}><Save size={16}/> Simpan Life Map</button></div><p className="section-copy">Isi ringkas sesuai proposal siswa. Smart Proposal Reader mengisi jawaban yang jelas dan tetap dapat dikoreksi.</p><div className="life-aspect-grid">{lifeAspects.map((aspect,i)=>{const label=LIFE_CATEGORIES.find(([key])=>key===aspect.category)?.[1]??aspect.category;return <label className={asText(aspect.content).trim()?"life-aspect filled":"life-aspect"} key={aspect.category}><div><span className="aspect-index">{String(i+1).padStart(2,"0")}</span><strong>{label}</strong></div><textarea value={asText(aspect.content)} placeholder="Belum ada catatan..." onChange={e=>setLifeAspects(lifeAspects.map((x,n)=>n===i?{...x,content:e.target.value}:x))}/></label>})}</div></section>}
     {activeTab==="milestone"&&<section className="workspace-card life-map-card"><div className="card-title"><Flag size={18}/><div><p className="eyebrow">MILESTONE</p><h2>Langkah konkret berikutnya</h2></div></div><div className="quick-add"><input value={newMilestone} onChange={e=>setNewMilestone(e.target.value)} placeholder="Contoh: Menentukan 3 pilihan jurusan" onKeyDown={e=>{if(e.key==="Enter")void addMilestone()}}/><button onClick={addMilestone}>Tambah</button></div><div className="check-list">{milestones.map(item=><button key={item.id} onClick={()=>toggleMilestone(item)} className={item.status==="completed"?"check-item complete":"check-item"}><span>{item.status==="completed"?<CheckCircle2 size={18}/>:<span className="empty-check"/>}</span><div><strong>{item.title}</strong><small>{item.target_date?formatDate(item.target_date):"Belum ada target tanggal"}</small></div></button>)}{!milestones.length&&<Empty text="Belum ada milestone. Tambahkan langkah pertama siswa."/>}</div></section>}

@@ -9,18 +9,15 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function resilientFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const source = input instanceof Request ? input : null;
-  const url = source?.url ?? String(input);
   const method = (init?.method ?? source?.method ?? "GET").toUpperCase();
   const headers = new Headers(source?.headers ?? undefined);
   new Headers(init?.headers ?? undefined).forEach((value, key) => headers.set(key, value));
 
-  // Proposal paths are unique per version. Making object uploads idempotent prevents
-  // a transient network retry from failing because the first request actually arrived.
-  if (url.includes("/storage/v1/object/") && (method === "POST" || method === "PUT")) {
-    headers.set("x-upsert", "true");
-  }
-
-  const retryable = method === "GET" || method === "HEAD" || url.includes("/storage/v1/object/");
+  // Only retry read-only requests here. Retrying a Request that contains a File/Blob
+  // body can reuse an already-consumed stream in some browsers and produce a false
+  // "Failed to fetch" even when the network has recovered. Storage uploads have their
+  // own retry loop in lib/upload.ts, which recreates the request body on every attempt.
+  const retryable = method === "GET" || method === "HEAD";
   const maxAttempts = retryable ? 3 : 1;
   let lastError: unknown;
 

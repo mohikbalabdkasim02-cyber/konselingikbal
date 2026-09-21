@@ -166,10 +166,23 @@ export default function StudentLoginPage() {
     <section className="student-login-stage61-shell">
       <header className="student-login-stage61-brand">
         <BrandLogo compact className="student-login-stage61-logo" />
-        <div>
+
+        <div className="student-login-stage65-center">
+          <span>RUANG TUMBUH SISWA</span>
+          <h2>Kenali dirimu. Susun langkahmu. Tumbuh dengan arah.</h2>
+          <p>LifeMap membantumu memahami diri, melihat progres, dan mengubah refleksi menjadi langkah kecil yang nyata.</p>
+          <div className="student-login-stage65-points" aria-label="Manfaat Portal Siswa">
+            <div><strong>01</strong><span>Refleksi diri yang aman</span></div>
+            <div><strong>02</strong><span>Action Plan yang lebih jelas</span></div>
+            <div><strong>03</strong><span>Arah belajar & karier yang bertumbuh</span></div>
+          </div>
+        </div>
+
+        <div className="student-login-stage65-bottom">
           <p className="stage6-kicker">BINA INSAN LIFEMAP</p>
           <h1>Portal Siswa</h1>
           <p>Ruang pribadi untuk asesmen, Action Plan, BK Karier, dan perkembanganmu.</p>
+          <blockquote>“Satu langkah kecil hari ini bisa mengubah perjalananmu besok.”</blockquote>
         </div>
       </header>
 
