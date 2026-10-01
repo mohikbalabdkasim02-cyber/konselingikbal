@@ -86,6 +86,7 @@ export function MobileAppNav(){
     if(pathname==="/"&&!rootStaffSession)return null;
     if(
       pathname==="/"||
+      pathname==="/students"||
       pathname.startsWith("/students/")||
       pathname.startsWith("/counseling")||
       pathname.startsWith("/system-management")
@@ -131,7 +132,7 @@ export function MobileAppNav(){
             <span>{label}</span>
           </Link>;
         })}
-        {mode==="staff"&&<button type="button" className={moreOpen?"active":""} onClick={()=>setMoreOpen(true)} aria-expanded={moreOpen}>
+        {mode==="staff"&&<button type="button" className={moreOpen||pathname.startsWith("/system-management")?"active":""} onClick={()=>setMoreOpen(true)} aria-expanded={moreOpen}>
           <MoreHorizontal/>
           <span>Lainnya</span>
         </button>}
