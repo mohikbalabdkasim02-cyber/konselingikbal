@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, ClipboardList, Home, LogOut, Search, Settings, ShieldCheck, UserRound, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -67,19 +67,36 @@ export default function HomePage() {
   const [selected, setSelected] = useState<Student | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState<"ringkasan" | "siswa">("ringkasan");
+  const navigationLock = useRef<"ringkasan"|"siswa"|null>(null);
+  const navigationTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const loadedSessionUser = useRef<string|null>(null);
 
   useEffect(() => {
+    const hydrateForSession=(session:{user?:{id?:string}}|null)=>{
+      const userId=session?.user?.id??null;
+      const active=Boolean(userId);
+      setLoggedIn(active);
+      if(active && loadedSessionUser.current!==userId){
+        loadedSessionUser.current=userId;
+        void loadStudents();
+      }
+      if(!active){
+        loadedSessionUser.current=null;
+        setStudents([]);
+      }
+    };
+
     supabase.auth.getSession().then(({ data }) => {
-      const active = Boolean(data.session);
-      setLoggedIn(active);
+      hydrateForSession(data.session);
       setSessionReady(true);
-      if (active) loadStudents();
+    }).catch(()=>{
+      setSessionReady(true);
+      setLoggedIn(false);
     });
+
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      const active = Boolean(session);
-      setLoggedIn(active);
-      if (active) loadStudents();
-      else setStudents([]);
+      hydrateForSession(session);
+      setSessionReady(true);
     });
     return () => listener.subscription.unsubscribe();
   }, []);
@@ -98,6 +115,7 @@ export default function HomePage() {
     const observer=new IntersectionObserver((entries)=>{
       const visible=entries.filter(entry=>entry.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio);
       const id=visible[0]?.target.id;
+      if(navigationLock.current) return;
       if(id==="ringkasan"||id==="siswa") setActiveSection(id);
     },{root:null,rootMargin:"-92px 0px -48% 0px",threshold:[0.05,0.2,0.45,0.7]});
     sections.forEach(section=>observer.observe(section));
@@ -122,49 +140,45 @@ export default function HomePage() {
   },[loggedIn,students.length]);
 
   function scrollToSection(id:"ringkasan"|"siswa"){
+    navigationLock.current=id;
     setActiveSection(id);
     const target=document.getElementById(id);
     if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
     window.history.replaceState(null,"",`#${id}`);
+    if(navigationTimer.current) clearTimeout(navigationTimer.current);
+    navigationTimer.current=setTimeout(()=>{navigationLock.current=null;},650);
   }
 
   async function loadStudents() {
     setLoading(true);
     setAuthMessage("");
     try{
-      const [studentsRes, docsRes, attemptsRes, plansRes, consultationsRes] = await Promise.all([
-        supabase
-          .from("students")
-          .select("id,full_name,gender,email,nis,nisn,classes(name,slug,grade),student_profiles(journey_stage,expertise,career_direction)")
-          .eq("is_active", true)
-          .order("full_name"),
-        supabase
-          .from("student_documents")
-          .select("student_id,status,latest_version")
-          .eq("document_type", "proposal_hidup"),
-        supabase
-          .from("assessment_attempts")
-          .select("student_id,status,assessment_definitions(domain)")
-          .in("status", ["draft","submitted","reviewed"]),
-        supabase
-          .from("assessment_action_plans")
-          .select("student_id,status"),
-        supabase
-          .from("consultation_requests")
-          .select("student_id,status")
-          .in("status", ["requested","scheduled"]),
-      ]);
+      // Critical path: render the student directory first.
+      const studentsRes = await supabase
+        .from("students")
+        .select("id,full_name,gender,email,nis,nisn,classes(name,slug,grade),student_profiles(journey_stage,expertise,career_direction)")
+        .eq("is_active", true)
+        .order("full_name");
       if (studentsRes.error) throw studentsRes.error;
       setStudents(((studentsRes.data??[]) as unknown as Record<string,unknown>[]).map(normalizeStudentRow));
-      if (!docsRes.error) setDocuments(Object.fromEntries(((docsRes.data ?? []) as StudentDocument[]).map((item) => [item.student_id, item])));
-      if (!attemptsRes.error) setAttempts(((attemptsRes.data??[]) as unknown as Record<string,unknown>[]).map(normalizeAttemptRow));
-      if (!plansRes.error) setActionPlans((plansRes.data ?? []) as ActionPlanRow[]);
-      if (!consultationsRes.error) setConsultations((consultationsRes.data ?? []) as ConsultationRow[]);
+      setLoading(false);
+
+      // Non-critical dashboard indicators load after the directory is already usable.
+      void Promise.all([
+        supabase.from("student_documents").select("student_id,status,latest_version").eq("document_type", "proposal_hidup"),
+        supabase.from("assessment_attempts").select("student_id,status,assessment_definitions(domain)").in("status", ["draft","submitted","reviewed"]),
+        supabase.from("assessment_action_plans").select("student_id,status"),
+        supabase.from("consultation_requests").select("student_id,status").in("status", ["requested","scheduled"]),
+      ]).then(([docsRes,attemptsRes,plansRes,consultationsRes])=>{
+        if (!docsRes.error) setDocuments(Object.fromEntries(((docsRes.data ?? []) as StudentDocument[]).map((item) => [item.student_id, item])));
+        if (!attemptsRes.error) setAttempts(((attemptsRes.data??[]) as unknown as Record<string,unknown>[]).map(normalizeAttemptRow));
+        if (!plansRes.error) setActionPlans((plansRes.data ?? []) as ActionPlanRow[]);
+        if (!consultationsRes.error) setConsultations((consultationsRes.data ?? []) as ConsultationRow[]);
+      }).catch(()=>{ /* Secondary metrics must never block the directory. */ });
     }catch(error){
       const message=error instanceof Error?error.message:"Dashboard gagal memuat data.";
       setAuthMessage(message);
       setStudents([]);
-    }finally{
       setLoading(false);
     }
   }
