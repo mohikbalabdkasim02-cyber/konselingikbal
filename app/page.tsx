@@ -69,19 +69,34 @@ export default function HomePage() {
   const [activeSection, setActiveSection] = useState<"ringkasan" | "siswa">("ringkasan");
   const navigationLock = useRef<"ringkasan"|"siswa"|null>(null);
   const navigationTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const loadedSessionUser = useRef<string|null>(null);
 
   useEffect(() => {
+    const hydrateForSession=(session:{user?:{id?:string}}|null)=>{
+      const userId=session?.user?.id??null;
+      const active=Boolean(userId);
+      setLoggedIn(active);
+      if(active && loadedSessionUser.current!==userId){
+        loadedSessionUser.current=userId;
+        void loadStudents();
+      }
+      if(!active){
+        loadedSessionUser.current=null;
+        setStudents([]);
+      }
+    };
+
     supabase.auth.getSession().then(({ data }) => {
-      const active = Boolean(data.session);
-      setLoggedIn(active);
+      hydrateForSession(data.session);
       setSessionReady(true);
-      if (active) loadStudents();
+    }).catch(()=>{
+      setSessionReady(true);
+      setLoggedIn(false);
     });
+
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      const active = Boolean(session);
-      setLoggedIn(active);
-      if (active) loadStudents();
-      else setStudents([]);
+      hydrateForSession(session);
+      setSessionReady(true);
     });
     return () => listener.subscription.unsubscribe();
   }, []);
