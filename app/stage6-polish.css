@@ -1899,3 +1899,67 @@ input,select,textarea{
   }
   .stage6-stat-grid{margin-top:12px!important}
 }
+
+
+/* Stage 10.1 — precise official-logo sizing in BK headers. */
+.brand-logo{
+  object-fit:contain!important;
+  object-position:center!important;
+}
+.stage62-control .student-workspace-topbar{
+  min-height:94px!important;
+  padding:8px 28px!important;
+  overflow:visible!important;
+}
+.stage62-control .workspace-brand{
+  min-width:0;
+  display:flex!important;
+  align-items:center!important;
+  gap:14px!important;
+  line-height:1.15;
+}
+.stage62-control .workspace-brand .brand-logo{
+  width:auto!important;
+  height:66px!important;
+  max-width:106px!important;
+  max-height:66px!important;
+  flex:0 0 auto!important;
+  object-fit:contain!important;
+  object-position:center!important;
+}
+.stage62-control .workspace-brand>span{
+  color:#778a96!important;
+  font-size:12px!important;
+  white-space:nowrap;
+}
+.stage62-control .workspace-brand>strong{
+  color:#082f49!important;
+  font-size:13px!important;
+  white-space:nowrap;
+}
+@media(max-width:900px){
+  .stage62-control .student-workspace-topbar{
+    min-height:82px!important;
+    padding:7px 18px!important;
+  }
+  .stage62-control .workspace-brand .brand-logo{
+    height:56px!important;
+    max-width:90px!important;
+    max-height:56px!important;
+  }
+  .stage62-control .workspace-brand>span{display:none}
+}
+@media(max-width:620px){
+  .stage62-control .student-workspace-topbar{
+    min-height:74px!important;
+    padding:6px 14px!important;
+  }
+  .stage62-control .workspace-brand .brand-logo{
+    height:48px!important;
+    max-width:77px!important;
+    max-height:48px!important;
+  }
+  .stage62-control .workspace-brand>strong{
+    font-size:11px!important;
+  }
+}
