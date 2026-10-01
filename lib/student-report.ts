@@ -319,6 +319,155 @@ export async function downloadStudentReportPdf(bundle: StudentReportBundle, opti
   doc.save(`laporan-${filenameSafe(bundle.student.full_name)}.pdf`);
 }
 
+export async function downloadAssessmentReportPdf(
+  bundle: StudentReportBundle,
+  assessmentId: string,
+  options: PdfOptions = {},
+) {
+  const assessment = bundle.assessments.find((item) => item.id === assessmentId);
+  if (!assessment) throw new Error("Data asesmen tidak ditemukan pada laporan siswa.");
+
+  const { jsPDF } = await import("jspdf");
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const marginX = 16;
+  const topContent = 48;
+  const bottomSafe = 18;
+  const contentWidth = pageWidth - marginX * 2;
+  let y = topContent;
+
+  const addPageChrome = () => {
+    doc.setFillColor(8, 62, 89);
+    doc.rect(0, 0, pageWidth, 34, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Laporan Detail Asesmen", marginX, 15);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text("Bina Insan LifeMap · Dokumen internal Guru BK", marginX, 23);
+    doc.setDrawColor(222, 232, 237);
+    doc.line(marginX, 39, pageWidth - marginX, 39);
+  };
+
+  const newPage = () => {
+    doc.addPage();
+    addPageChrome();
+    y = topContent;
+  };
+
+  const ensure = (height = 12) => {
+    if (y + height > pageHeight - bottomSafe) newPage();
+  };
+
+  const text = (
+    value: string,
+    size = 9,
+    bold = false,
+    x = marginX,
+    maxWidth = contentWidth,
+    color: [number, number, number] = [16, 42, 58],
+  ) => {
+    doc.setFont("helvetica", bold ? "bold" : "normal");
+    doc.setFontSize(size);
+    doc.setTextColor(...color);
+    const lines = doc.splitTextToSize(value || "-", maxWidth);
+    const lineHeight = Math.max(3.8, size * 0.43);
+    ensure(lines.length * lineHeight + 2);
+    doc.text(lines, x, y);
+    y += lines.length * lineHeight + 2;
+  };
+
+  addPageChrome();
+
+  doc.setFillColor(245, 249, 251);
+  doc.roundedRect(marginX, y, contentWidth, 31, 4, 4, "F");
+  y += 8;
+  text(bundle.student.full_name, 14, true, marginX + 6, contentWidth - 12, [8, 62, 89]);
+  text(
+    `${bundle.student.class_name} · NIS ${bundle.student.nis ?? "-"} · NISN ${bundle.student.nisn ?? "-"}`,
+    8.5,
+    false,
+    marginX + 6,
+    contentWidth - 12,
+    [104, 124, 137],
+  );
+  y += 6;
+
+  text(assessment.title, 13, true, marginX, contentWidth, [8, 62, 89]);
+  const submitted = assessment.submittedAt
+    ? new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date(assessment.submittedAt))
+    : "Belum ada tanggal kirim";
+  text(`Status: ${assessment.status} · Dikirim: ${submitted}`, 8.5, false, marginX, contentWidth, [104, 124, 137]);
+  y += 3;
+
+  let currentSection = "";
+  assessment.questions.forEach((question, index) => {
+    if (question.section !== currentSection) {
+      currentSection = question.section;
+      ensure(16);
+      y += 2;
+      doc.setFillColor(235, 245, 249);
+      doc.roundedRect(marginX, y, contentWidth, 9, 2.5, 2.5, "F");
+      y += 6;
+      text(currentSection, 9, true, marginX + 4, contentWidth - 8, [8, 62, 89]);
+      y += 2;
+    }
+
+    const promptLines = doc.splitTextToSize(`${index + 1}. ${question.prompt}`, contentWidth - 12);
+    const answerLines = doc.splitTextToSize(`Jawaban: ${question.answer}`, contentWidth - 12);
+    const cardHeight = Math.max(24, promptLines.length * 4.2 + answerLines.length * 4 + 12);
+    ensure(cardHeight + 4);
+
+    const cardTop = y;
+    doc.setDrawColor(224, 233, 238);
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(marginX, cardTop, contentWidth, cardHeight, 3.5, 3.5, "FD");
+    doc.setFillColor(question.sensitive ? 232 : 214, question.sensitive ? 241 : 234, question.sensitive ? 245 : 240);
+    doc.roundedRect(marginX, cardTop, 3, cardHeight, 1.5, 1.5, "F");
+    y = cardTop + 7;
+    text(`${index + 1}. ${question.prompt}`, 9, true, marginX + 7, contentWidth - 12, [16, 42, 58]);
+    doc.setFillColor(246, 249, 251);
+    const answerY = y;
+    const answerHeight = Math.max(9, answerLines.length * 4 + 4);
+    doc.roundedRect(marginX + 7, answerY - 3, contentWidth - 14, answerHeight, 2.5, 2.5, "F");
+    text(`Jawaban: ${question.answer}`, 8.7, false, marginX + 10, contentWidth - 20, [38, 63, 77]);
+    y = cardTop + cardHeight + 4;
+  });
+
+  if (assessment.review) {
+    ensure(42);
+    y += 3;
+    text("Review Guru BK", 12, true, marginX, contentWidth, [8, 62, 89]);
+    const reviewRows: Array<[string, unknown]> = [
+      ["Masalah prioritas", assessment.review.priority_issue],
+      ["Tingkat kebutuhan", assessment.review.need_level],
+      ["Bantuan yang disepakati", assessment.review.agreed_support],
+      ["Status tindak lanjut", assessment.review.status],
+      ["Catatan", assessment.review.notes],
+    ];
+    reviewRows.filter(([, value]) => value).forEach(([label, value]) => {
+      text(label.toUpperCase(), 7.3, true, marginX, contentWidth, [104, 124, 137]);
+      text(asText(value), 9, false);
+    });
+  }
+
+  const pages = doc.getNumberOfPages();
+  for (let page = 1; page <= pages; page += 1) {
+    doc.setPage(page);
+    doc.setDrawColor(226, 233, 237);
+    doc.line(marginX, 283, pageWidth - marginX, 283);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.3);
+    doc.setTextColor(104, 124, 137);
+    doc.text(options.footer ?? "Rahasia · Dokumen internal pendampingan Guru BK.", marginX, 289);
+    doc.text(`Halaman ${page} / ${pages}`, pageWidth - marginX, 289, { align: "right" });
+  }
+
+  doc.save(`asesmen-${filenameSafe(bundle.student.full_name)}-${filenameSafe(assessment.title)}.pdf`);
+}
+
 export async function downloadGroupReportPdf(
   bundles: StudentReportBundle[],
   title: string,

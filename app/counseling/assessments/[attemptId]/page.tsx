@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { getAssessmentDefinition } from "@/lib/assessments/registry";
 import { toUserMessage } from "@/lib/errors";
 import { ErrorCard } from "@/components/common/ErrorCard";
-import { downloadStudentReportPdf, loadStudentReportBundle } from "@/lib/student-report";
+import { downloadAssessmentReportPdf, downloadStudentReportPdf, loadStudentReportBundle } from "@/lib/student-report";
 
 type AttemptRow={
   id:string;student_id:string;status:string;submitted_at:string|null;
@@ -79,13 +79,22 @@ export default function CounselorAssessmentReview(){
       setMessage("PDF laporan komprehensif siswa berhasil dibuat.");
     }catch(e){setMessage(toUserMessage(e))}finally{setReporting(false)}
   }
+  async function downloadAssessmentReport(){
+    if(!attempt)return;
+    setReporting(true);setMessage("");
+    try{
+      const bundle=await loadStudentReportBundle(supabase,attempt.student_id);
+      await downloadAssessmentReportPdf(bundle,attempt.id);
+      setMessage("PDF detail asesmen berhasil dibuat.");
+    }catch(e){setMessage(toUserMessage(e))}finally{setReporting(false)}
+  }
   if(loading)return <main className="center-screen"><div className="loader"/></main>;
   if(!attempt)return <main className="assessment-page"><div className="assessment-shell"><ErrorCard message={message||"Hasil asesmen tidak ditemukan."}/></div></main>;
   const domain=attempt.assessment_definitions?.domain??"personal";
 
   return <main className="student-workspace-page">
     <header className="student-workspace-topbar"><Link href="/counseling/assessments" className="back-link"><ArrowLeft size={18}/> Assessment Inbox</Link><div className="workspace-brand">Bina Insan <strong>Review Asesmen</strong></div></header>
-    <section className="student-hero"><div><p className="eyebrow">REVIEW GURU BK</p><h1>{attempt.students?.full_name??"Siswa"}</h1><p>{attempt.students?.classes?.name??"Kelas belum tersedia"} · {attempt.assessment_definitions?.title??"Asesmen"}</p></div><div className="hero-actions"><button className="refresh-btn" onClick={downloadFullReport} disabled={reporting}><Download size={16}/>{reporting?"Menyiapkan...":"Download PDF Siswa"}</button><span className="status-pill"><CheckCircle2 size={16}/>{attempt.status==="reviewed"?"Sudah direview":"Perlu review"}</span></div></section>
+    <section className="student-hero"><div><p className="eyebrow">REVIEW GURU BK</p><h1>{attempt.students?.full_name??"Siswa"}</h1><p>{attempt.students?.classes?.name??"Kelas belum tersedia"} · {attempt.assessment_definitions?.title??"Asesmen"}</p></div><div className="hero-actions"><button className="refresh-btn assessment-export-btn" onClick={downloadAssessmentReport} disabled={reporting}><Download size={16}/>{reporting?"Menyiapkan...":"PDF Asesmen"}</button><button className="refresh-btn" onClick={downloadFullReport} disabled={reporting}><Download size={16}/>PDF Siswa</button><span className="status-pill"><CheckCircle2 size={16}/>{attempt.status==="reviewed"?"Sudah direview":"Perlu review"}</span></div></section>
     {message&&<div className="workspace-message">{message}</div>}
     <section className="counselor-review-grid">
       <div className="workspace-card"><div className="card-title"><ShieldAlert size={18}/><div><p className="eyebrow">JAWABAN SISWA</p><h2>{answeredCount}/{answered.length} soal terjawab</h2></div></div><p className="section-copy">Semua soal ditampilkan sesuai urutan asesmen, termasuk soal yang belum dijawab. Jawaban sensitif hanya ditampilkan di ruang review individual ini.</p><div className="review-answer-list">{answered.map(({section,item,value},index)=><div className={value===undefined||value===null||value===""?"review-answer unanswered":"review-answer"} key={item.id}><small>{String(index+1).padStart(2,"0")} · {section}{item.sensitive?" · SENSITIF":""}</small><strong>{item.prompt}</strong><p>{answerDisplay(value,item.options)}</p></div>)}</div></div>
