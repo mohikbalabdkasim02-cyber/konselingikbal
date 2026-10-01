@@ -71,13 +71,22 @@ export function AssessmentWizard({
   }
 
   async function nextMobile(){
-    await saveNow();
-    if(itemIndex<flatItems.length-1)setItemIndex(value=>value+1);
-    else setReviewing(true);
+    try{
+      await saveNow();
+      if(itemIndex<flatItems.length-1)setItemIndex(value=>value+1);
+      else setReviewing(true);
+    }catch{
+      // Parent surfaces the save error; keep the student on the same question.
+    }
   }
 
-  function previousMobile(){
-    setItemIndex(value=>Math.max(0,value-1));
+  async function previousMobile(){
+    try{
+      await saveNow();
+      setItemIndex(value=>Math.max(0,value-1));
+    }catch{
+      // Parent surfaces the save error; keep the student on the same question.
+    }
   }
 
   if (reviewing) {
@@ -121,8 +130,8 @@ export function AssessmentWizard({
         <span>Jawaban disimpan saat Anda berpindah pertanyaan.</span>
       </div>
       <div className="assessment-actions assessment-mobile-actions">
-        <button type="button" className="assessment-secondary" disabled={itemIndex===0} onClick={previousMobile}><ArrowLeft size={19}/> Kembali</button>
-        <button type="button" className="assessment-primary" disabled={saving||localSaving} onClick={nextMobile}>
+        <button type="button" className="assessment-secondary" disabled={itemIndex===0} onClick={()=>void previousMobile()}><ArrowLeft size={19}/> Kembali</button>
+        <button type="button" className="assessment-primary" disabled={saving||localSaving} onClick={()=>void nextMobile()}>
           {saving||localSaving?"Menyimpan…":itemIndex<flatItems.length-1?"Lanjut":"Tinjau"}
           {!saving&&!localSaving&&<ArrowRight size={19}/>}
         </button>
