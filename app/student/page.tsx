@@ -67,6 +67,8 @@ export default function StudentHomePage() {
         .single();
       if (studentError) throw studentError;
       setStudent(studentData as unknown as Student);
+      // Render the student's home immediately; progress modules hydrate after identity is ready.
+      setLoading(false);
 
       const { data: definitionRows, error: definitionError } = await supabase
         .from("assessment_definitions")
