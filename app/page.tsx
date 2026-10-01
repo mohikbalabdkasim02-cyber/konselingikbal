@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, ClipboardList, Home, LogOut, Search, Settings, ShieldCheck, UserRound, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -67,6 +67,8 @@ export default function HomePage() {
   const [selected, setSelected] = useState<Student | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState<"ringkasan" | "siswa">("ringkasan");
+  const navigationLock = useRef<"ringkasan"|"siswa"|null>(null);
+  const navigationTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -98,6 +100,7 @@ export default function HomePage() {
     const observer=new IntersectionObserver((entries)=>{
       const visible=entries.filter(entry=>entry.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio);
       const id=visible[0]?.target.id;
+      if(navigationLock.current) return;
       if(id==="ringkasan"||id==="siswa") setActiveSection(id);
     },{root:null,rootMargin:"-92px 0px -48% 0px",threshold:[0.05,0.2,0.45,0.7]});
     sections.forEach(section=>observer.observe(section));
@@ -122,10 +125,13 @@ export default function HomePage() {
   },[loggedIn,students.length]);
 
   function scrollToSection(id:"ringkasan"|"siswa"){
+    navigationLock.current=id;
     setActiveSection(id);
     const target=document.getElementById(id);
     if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
     window.history.replaceState(null,"",`#${id}`);
+    if(navigationTimer.current) clearTimeout(navigationTimer.current);
+    navigationTimer.current=setTimeout(()=>{navigationLock.current=null;},650);
   }
 
   async function loadStudents() {
