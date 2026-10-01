@@ -132,39 +132,32 @@ export default function HomePage() {
     setLoading(true);
     setAuthMessage("");
     try{
-      const [studentsRes, docsRes, attemptsRes, plansRes, consultationsRes] = await Promise.all([
-        supabase
-          .from("students")
-          .select("id,full_name,gender,email,nis,nisn,classes(name,slug,grade),student_profiles(journey_stage,expertise,career_direction)")
-          .eq("is_active", true)
-          .order("full_name"),
-        supabase
-          .from("student_documents")
-          .select("student_id,status,latest_version")
-          .eq("document_type", "proposal_hidup"),
-        supabase
-          .from("assessment_attempts")
-          .select("student_id,status,assessment_definitions(domain)")
-          .in("status", ["draft","submitted","reviewed"]),
-        supabase
-          .from("assessment_action_plans")
-          .select("student_id,status"),
-        supabase
-          .from("consultation_requests")
-          .select("student_id,status")
-          .in("status", ["requested","scheduled"]),
-      ]);
+      // Critical path: render the student directory first.
+      const studentsRes = await supabase
+        .from("students")
+        .select("id,full_name,gender,email,nis,nisn,classes(name,slug,grade),student_profiles(journey_stage,expertise,career_direction)")
+        .eq("is_active", true)
+        .order("full_name");
       if (studentsRes.error) throw studentsRes.error;
       setStudents(((studentsRes.data??[]) as unknown as Record<string,unknown>[]).map(normalizeStudentRow));
-      if (!docsRes.error) setDocuments(Object.fromEntries(((docsRes.data ?? []) as StudentDocument[]).map((item) => [item.student_id, item])));
-      if (!attemptsRes.error) setAttempts(((attemptsRes.data??[]) as unknown as Record<string,unknown>[]).map(normalizeAttemptRow));
-      if (!plansRes.error) setActionPlans((plansRes.data ?? []) as ActionPlanRow[]);
-      if (!consultationsRes.error) setConsultations((consultationsRes.data ?? []) as ConsultationRow[]);
+      setLoading(false);
+
+      // Non-critical dashboard indicators load after the directory is already usable.
+      void Promise.all([
+        supabase.from("student_documents").select("student_id,status,latest_version").eq("document_type", "proposal_hidup"),
+        supabase.from("assessment_attempts").select("student_id,status,assessment_definitions(domain)").in("status", ["draft","submitted","reviewed"]),
+        supabase.from("assessment_action_plans").select("student_id,status"),
+        supabase.from("consultation_requests").select("student_id,status").in("status", ["requested","scheduled"]),
+      ]).then(([docsRes,attemptsRes,plansRes,consultationsRes])=>{
+        if (!docsRes.error) setDocuments(Object.fromEntries(((docsRes.data ?? []) as StudentDocument[]).map((item) => [item.student_id, item])));
+        if (!attemptsRes.error) setAttempts(((attemptsRes.data??[]) as unknown as Record<string,unknown>[]).map(normalizeAttemptRow));
+        if (!plansRes.error) setActionPlans((plansRes.data ?? []) as ActionPlanRow[]);
+        if (!consultationsRes.error) setConsultations((consultationsRes.data ?? []) as ConsultationRow[]);
+      }).catch(()=>{ /* Secondary metrics must never block the directory. */ });
     }catch(error){
       const message=error instanceof Error?error.message:"Dashboard gagal memuat data.";
       setAuthMessage(message);
       setStudents([]);
-    }finally{
       setLoading(false);
     }
   }
