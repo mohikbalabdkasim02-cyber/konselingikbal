@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, BookOpen, CheckCircle2, ChevronRight, Download, FileSearch, FileText, Flag, GraduationCap, Loader2, Map, RefreshCw, Save, Sparkles, Target, Upload, UserRound } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { parseProposalText, type ProposalExtraction } from "@/lib/proposal-parser";
-import { DOCX_MIME, PDF_MIME, PPTX_MIME, isAutoReadableProposal, safeStorageFileName, uploadStorageWithRetry, validateProposalFile, type UploadPhase } from "@/lib/upload";
+import { PDF_MIME, isAutoReadableProposal, safeStorageFileName, uploadStorageWithRetry, validateProposalFile, type UploadPhase } from "@/lib/upload";
 import { toUserMessage } from "@/lib/errors";
 import { NetworkState } from "@/components/common/NetworkState";
 import { downloadStudentReportPdf, loadStudentReportBundle } from "@/lib/student-report";
@@ -153,7 +153,7 @@ export default function StudentWorkspacePage(){
     try{await applyExtraction(extraction);setMessage("Data proposal yang sudah ditinjau berhasil diterapkan ke profil siswa.");await loadWorkspace();}catch(error){setMessage(toUserMessage(error));}finally{setSaving(false)}
   }
 
-  async function openVersion(version:DocumentVersion){setMessage("");setDocxText(null);setPreviewUrl(null);try{if(version.mime_type===PDF_MIME){const signed=await supabase.storage.from("student-proposals").createSignedUrl(version.storage_path,3600);if(signed.error)throw signed.error;setPreviewUrl(signed.data.signedUrl);return}if(isAutoReadableProposal(version.mime_type)||version.mime_type===PPTX_MIME){setDocxText(await extractVersionText(version));return}const signed=await supabase.storage.from("student-proposals").createSignedUrl(version.storage_path,3600);if(signed.error)throw signed.error;setPreviewUrl(signed.data.signedUrl);}catch(e){setMessage(toUserMessage(e))}}
+  async function openVersion(version:DocumentVersion){setMessage("");setDocxText(null);setPreviewUrl(null);try{if(version.mime_type===PDF_MIME){const signed=await supabase.storage.from("student-proposals").createSignedUrl(version.storage_path,3600);if(signed.error)throw signed.error;setPreviewUrl(signed.data.signedUrl);return}if(isAutoReadableProposal(version.mime_type)){setDocxText(await extractVersionText(version));return}const signed=await supabase.storage.from("student-proposals").createSignedUrl(version.storage_path,3600);if(signed.error)throw signed.error;setPreviewUrl(signed.data.signedUrl);}catch(e){setMessage(toUserMessage(e))}}
   async function downloadVersion(version:DocumentVersion){try{const dl=await supabase.storage.from("student-proposals").download(version.storage_path);if(dl.error||!dl.data)throw dl.error??new Error("Download gagal.");const href=URL.createObjectURL(dl.data);const a=document.createElement("a");a.href=href;a.download=version.file_name;a.click();URL.revokeObjectURL(href);}catch(e){setMessage(toUserMessage(e))}}
 
   async function downloadComprehensiveReport(){
