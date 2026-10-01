@@ -4,13 +4,20 @@ export const MAX_PROPOSAL_BYTES = 20 * 1024 * 1024;
 export const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 export const PDF_MIME = "application/pdf";
 export const DOC_MIME = "application/msword";
+export const PPTX_MIME = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+export const PPT_MIME = "application/vnd.ms-powerpoint";
 
 const SUPABASE_URL = "https://pmfmrybzdkfmmmsdlddj.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_a953yOUs9wPEmE_6L0q2mA_8kyqflUn";
-const ALLOWED_EXTENSIONS = ["pdf", "docx", "doc"] as const;
-const ALLOWED_MIMES = [PDF_MIME, DOCX_MIME, DOC_MIME];
+const ALLOWED_EXTENSIONS = ["pdf", "docx", "doc", "pptx", "ppt"] as const;
+const ALLOWED_MIMES = [PDF_MIME, DOCX_MIME, DOC_MIME, PPTX_MIME, PPT_MIME];
+const AUTO_READABLE_MIMES = [PDF_MIME, DOCX_MIME, PPTX_MIME];
 
 export type UploadPhase = "idle" | "validating" | "uploading" | "recording" | "complete" | "error";
+
+export function isAutoReadableProposal(mimeType: string) {
+  return AUTO_READABLE_MIMES.includes(mimeType);
+}
 
 export function inferMimeType(file: Pick<File, "name" | "type">): string {
   if (file.type && ALLOWED_MIMES.includes(file.type)) return file.type;
@@ -18,17 +25,19 @@ export function inferMimeType(file: Pick<File, "name" | "type">): string {
   if (extension === "pdf") return PDF_MIME;
   if (extension === "docx") return DOCX_MIME;
   if (extension === "doc") return DOC_MIME;
+  if (extension === "pptx") return PPTX_MIME;
+  if (extension === "ppt") return PPT_MIME;
   return file.type || "application/octet-stream";
 }
 
 export function validateProposalFile(file: Pick<File, "name" | "type" | "size">): { mimeType: string } {
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
   if (!ALLOWED_EXTENSIONS.includes(extension as (typeof ALLOWED_EXTENSIONS)[number])) {
-    throw new Error("Format file tidak didukung. Gunakan PDF, DOCX, atau DOC.");
+    throw new Error("Format file tidak didukung. Gunakan PDF, DOC, DOCX, PPT, atau PPTX.");
   }
   const mimeType = inferMimeType(file);
   if (!ALLOWED_MIMES.includes(mimeType)) {
-    throw new Error("Format file tidak didukung. Gunakan PDF, DOCX, atau DOC.");
+    throw new Error("Format file tidak didukung. Gunakan PDF, DOC, DOCX, PPT, atau PPTX.");
   }
   if (file.size <= 0) throw new Error("File kosong dan tidak dapat diunggah.");
   if (file.size > MAX_PROPOSAL_BYTES) throw new Error("Ukuran file terlalu besar. Maksimal 20 MB.");
@@ -112,7 +121,6 @@ export async function uploadStorageWithRetry(args: {
     } catch (error) {
       lastError = error;
 
-      // Refresh once if the server reports an authentication failure.
       const message = error instanceof Error ? error.message : "";
       if ((message.includes("(401)") || message.includes("(403)")) && attempt < attempts) {
         token = await getFreshAccessToken(supabase);
