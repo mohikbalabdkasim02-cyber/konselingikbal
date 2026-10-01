@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BKQuickAccess } from "@/components/bk/BKQuickAccess";
 import { PWARegister } from "@/components/pwa/PWARegister";
 import { DeveloperCredit } from "@/components/brand/DeveloperCredit";
+import { MobileAppNav } from "@/components/navigation/MobileAppNav";
 import "./globals.css";
 import "./smart.css";
 import "./bk-v2.css";
@@ -11,6 +12,7 @@ import "./career-admin.css";
 import "./stage6.css";
 import "./stage6-polish.css";
 import "./mobile-polish.css";
+import "./mobile-shell.css";
 
 export const metadata: Metadata = {
   title: "Bina Insan LifeMap",
@@ -37,6 +39,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         {children}
         <DeveloperCredit />
+        <MobileAppNav />
         <BKQuickAccess />
         <PWARegister />
       </body>
