@@ -1069,3 +1069,627 @@ body{
   .stage6-reveal{opacity:1!important;transform:none!important;transition:none!important}
   .stage62-domain-track i{transition:none!important}
 }
+
+
+/* Stage 9 — unified Bina Insan premium navy design system.
+   Reliability rule: content is always visible; motion is enhancement only. */
+:root{
+  --stage6-navy:#082f49;
+  --stage6-navy-2:#0b3b57;
+  --stage6-sky:#63bfe3;
+  --stage6-gold:#c6a64a;
+  --stage6-ink:#122b3a;
+  --stage6-muted:#6b7e8a;
+  --stage6-bg:#f4f6f8;
+  --stage6-surface:#ffffff;
+  --stage6-line:#dfe6eb;
+  --stage6-soft:#eef3f6;
+
+  --bg:#f4f6f8;
+  --surface:#ffffff;
+  --ink:#122b3a;
+  --muted:#6b7e8a;
+  --line:#dfe6eb;
+  --primary:#082f49;
+  --primary-dark:#06283d;
+  --soft:#eef3f6;
+
+  --lifemap-navy:#082f49;
+  --lifemap-navy-2:#0b3b57;
+  --lifemap-sky:#63bfe3;
+  --lifemap-ice:#f2f6f8;
+  --lifemap-line:#dfe6eb;
+  --lifemap-ink:#122b3a;
+  --lifemap-muted:#6b7e8a;
+}
+
+html{background:#f4f6f8}
+body{
+  background:#f4f6f8!important;
+  color:#122b3a!important;
+  letter-spacing:-.005em;
+}
+button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
+button:disabled,a[aria-disabled="true"]{cursor:not-allowed}
+.loader{
+  width:34px!important;
+  height:34px!important;
+  border-color:#d9e2e7!important;
+  border-top-color:#082f49!important;
+  animation:spin .68s linear infinite!important;
+}
+
+/* Motion never controls visibility. */
+.stage6-reveal{
+  opacity:1!important;
+  transform:none!important;
+  transition:none!important;
+}
+.stage6-reveal.is-visible{
+  animation:lifemapPremiumReveal .42s cubic-bezier(.22,.8,.28,1) both;
+}
+@keyframes lifemapPremiumReveal{
+  from{opacity:.55;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Primary surfaces across all staff + student routes. */
+.stage6-shell,
+.student-workspace-page,
+.assessment-page,
+.student-portal-stage61,
+.student-login-stage61,
+.career-page,
+.system-management-page,
+.stage62-control,
+.bk-page,
+.bk-shell,
+.bk-dashboard,
+.counseling-page{
+  background:#f4f6f8!important;
+  color:#122b3a!important;
+}
+
+/* Staff dashboard — restrained, dark-navy, high contrast. */
+.stage6-sidebar{
+  background:#fff!important;
+  border-right:1px solid #dfe6eb!important;
+  box-shadow:10px 0 34px rgba(8,47,73,.035)!important;
+}
+.stage6-sidebar-brand{
+  background:#fff!important;
+  border:1px solid #e2e8ec!important;
+  box-shadow:none!important;
+}
+.stage6-nav a,.stage6-nav button{
+  color:#657a87!important;
+}
+.stage6-nav a svg,.stage6-nav button svg{
+  background:#f2f5f7!important;
+  color:#617884!important;
+}
+.stage6-nav a:hover,.stage6-nav button:hover{
+  color:#082f49!important;
+  background:#f5f8fa!important;
+  border-color:#e5ebef!important;
+}
+.stage6-nav a.active,.stage6-nav button.active{
+  color:#082f49!important;
+  background:#edf3f6!important;
+  border-color:#d9e4e9!important;
+  box-shadow:none!important;
+}
+.stage6-nav a.active svg,.stage6-nav button.active svg{
+  color:#082f49!important;
+  background:#fff!important;
+  border:1px solid #dfe8ec;
+  box-shadow:0 4px 12px rgba(8,47,73,.055)!important;
+}
+.stage6-nav a.active::before,.stage6-nav button.active::before{background:#082f49!important}
+.stage6-school-year{background:#f7f9fa!important;border-color:#e3e9ed!important}
+.stage6-school-year strong{color:#082f49!important}
+
+.stage6-topbar{
+  background:rgba(255,255,255,.95)!important;
+  border-color:#e1e7eb!important;
+  box-shadow:0 5px 18px rgba(8,47,73,.025)!important;
+}
+.stage6-topbar-copy strong{color:#082f49!important}
+.stage6-search{
+  background:#f8fafb!important;
+  border-color:#e0e7eb!important;
+  box-shadow:none!important;
+}
+.stage6-search:focus-within{
+  border-color:#8fb7ca!important;
+  box-shadow:0 0 0 4px rgba(8,47,73,.07)!important;
+}
+
+/* Hero: no washed-out cyan, explicit readable CTAs. */
+.stage6-hero{
+  min-height:238px!important;
+  border:1px solid #dfe6eb!important;
+  background:linear-gradient(135deg,#ffffff 0%,#f8fafb 68%,#f1f5f7 100%)!important;
+  box-shadow:0 12px 34px rgba(8,47,73,.045)!important;
+}
+.stage6-hero::after{
+  width:270px!important;
+  height:270px!important;
+  right:-80px!important;
+  bottom:-130px!important;
+  border-color:rgba(8,47,73,.06)!important;
+  box-shadow:0 0 0 34px rgba(8,47,73,.018),0 0 0 70px rgba(8,47,73,.012)!important;
+}
+.stage6-kicker,.eyebrow{color:#0b3b57!important}
+.stage6-hero h1{color:#082f49!important}
+.stage6-hero-copy>p:last-child{color:#657a87!important}
+.stage6-primary-link,
+.stage6-primary-link:visited{
+  background:#082f49!important;
+  border:1px solid #082f49!important;
+  color:#fff!important;
+  box-shadow:0 8px 20px rgba(8,47,73,.13)!important;
+}
+.stage6-primary-link svg{color:#fff!important}
+.stage6-primary-link:hover{
+  background:#06283d!important;
+  border-color:#06283d!important;
+  color:#fff!important;
+  transform:translateY(-1px)!important;
+}
+.stage6-secondary-link,
+.stage6-secondary-link:visited{
+  background:#fff!important;
+  border:1px solid #cfdbe1!important;
+  color:#082f49!important;
+  box-shadow:none!important;
+}
+.stage6-secondary-link svg{color:#082f49!important}
+.stage6-secondary-link:hover{
+  background:#f5f8fa!important;
+  border-color:#aebfc8!important;
+  color:#082f49!important;
+}
+
+.stage6-stat,
+.stage62-insight-card,
+.stage6-directory{
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+  box-shadow:0 8px 25px rgba(8,47,73,.035)!important;
+}
+.stage6-stat::after{background:rgba(8,47,73,.035)!important}
+.stage6-stat strong,
+.stage62-insight-card h2,
+.stage6-directory h2{color:#082f49!important}
+.stage62-domain-track{background:#e9eef1!important}
+.stage62-domain-track i{
+  background:linear-gradient(90deg,#082f49,#0b3b57)!important;
+}
+.stage62-attention-item strong{color:#082f49!important}
+.stage62-mini-note{
+  background:#f5f8fa!important;
+  border-color:#e1e8ec!important;
+  color:#6b7e8a!important;
+}
+.stage6-filter-row button{
+  color:#506773!important;
+  border-color:#dfe6eb!important;
+}
+.stage6-filter-row button.active{
+  background:#082f49!important;
+  border-color:#082f49!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+.stage6-student-row{
+  background:#fff!important;
+  border-color:#edf1f3!important;
+}
+.stage6-student-row:hover{
+  background:#f7f9fb!important;
+  transform:none!important;
+}
+.stage6-avatar{
+  background:#eef3f6!important;
+  color:#082f49!important;
+  border-color:#dde7eb!important;
+}
+.stage6-student-copy strong{color:#173646!important}
+.stage6-proposal-badge.ready{
+  background:#edf3f6!important;
+  color:#082f49!important;
+}
+.drawer-backdrop{background:rgba(6,30,45,.34)!important}
+.student-drawer{
+  background:#fff!important;
+  border-left-color:#dfe6eb!important;
+  box-shadow:-24px 0 64px rgba(8,47,73,.17)!important;
+}
+.drawer-avatar,.big-avatar{
+  background:#082f49!important;
+  color:#fff!important;
+}
+.open-profile-btn,.open-profile-btn:visited{
+  background:#082f49!important;
+  color:#fff!important;
+}
+
+/* Universal card geometry for detailed workspaces. */
+.workspace-card,
+.life-map-card,
+.version-panel,
+.panel,
+.side-card,
+.assessment-card,
+.assessment-section,
+.assessment-result-card,
+.action-plan-card,
+.career-card,
+.career-panel,
+.bk-card,
+.bk-panel,
+.bk-stat,
+.request-card,
+.queue-card,
+.system-card,
+.system-stat,
+.assessment-inbox-metric,
+.need-signal-card,
+.student-plan-card,
+.career-feature-card,
+.career-profile-card,
+.career-choice-card,
+.career-360-hero,
+.career-360-section,
+.career-select-card,
+.career-compare-column,
+.career-portfolio-item{
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+  box-shadow:0 7px 22px rgba(8,47,73,.03)!important;
+}
+.card-title h2,
+.workspace-card h2,
+.system-card h2,
+.bk-card h2,
+.bk-panel h2,
+.request-card h2,
+.career-card h2,
+.career-panel h2{color:#082f49!important}
+.card-title>svg,
+.system-card-head>svg,
+.career-360-section svg{color:#0b3b57!important}
+
+/* Inputs / controls — identical feel everywhere. */
+input,select,textarea{
+  color:#173646;
+}
+.profile-field input,.profile-field select,.profile-field textarea,
+.quick-add input,.life-aspect textarea,
+.counselor-review-form textarea,.counselor-review-form input,.counselor-review-form select,
+.system-form input,.system-form select,.system-form textarea,
+.system-report-select select,.system-toolbar select,
+.career-self-grid textarea,.career-choice-card input,.career-choice-card textarea,
+.career-portfolio-form input,.career-portfolio-form select,.career-portfolio-form textarea,
+.career-reflection-field textarea,.career-explorer-tools select,
+.career-admin-field input,.career-admin-field textarea,
+.student-plan-card textarea{
+  background:#fbfcfd!important;
+  border-color:#dce5e9!important;
+  color:#173646!important;
+}
+.profile-field input:focus,.profile-field select:focus,.profile-field textarea:focus,
+.quick-add input:focus,.life-aspect textarea:focus,
+.counselor-review-form textarea:focus,.counselor-review-form input:focus,.counselor-review-form select:focus,
+.system-form input:focus,.system-form select:focus,.system-form textarea:focus,
+.system-report-select select:focus,.system-toolbar select:focus,
+.career-self-grid textarea:focus,.career-choice-card input:focus,.career-choice-card textarea:focus,
+.career-portfolio-form input:focus,.career-portfolio-form select:focus,.career-portfolio-form textarea:focus,
+.career-reflection-field textarea:focus,.career-explorer-tools select:focus,
+.career-admin-field input:focus,.career-admin-field textarea:focus,
+.student-plan-card textarea:focus{
+  border-color:#86aebf!important;
+  box-shadow:0 0 0 3px rgba(8,47,73,.07)!important;
+}
+
+/* Buttons — one premium navy hierarchy across routes. */
+.primary-btn,.small-primary,.upload-btn,.quick-add button,
+.assessment-save,.assessment-primary,.system-primary,
+.need-signal-actions a,.portfolio-actions a,
+.student-login-submit,.student-portal-primary,
+.bk-primary,.career-primary{
+  background:#082f49!important;
+  color:#fff!important;
+  border-color:#082f49!important;
+  box-shadow:none!important;
+}
+.primary-btn:hover,.small-primary:hover,.upload-btn:hover,.quick-add button:hover,
+.assessment-save:hover,.assessment-primary:hover,.system-primary:hover,
+.student-login-submit:hover,.student-portal-primary:hover{
+  background:#06283d!important;
+  color:#fff!important;
+}
+.ghost-btn,.wide-secondary,.system-secondary,
+.assessment-secondary,.portfolio-actions button{
+  background:#eef3f6!important;
+  color:#082f49!important;
+  border-color:#dce5e9!important;
+}
+.status-pill,.student-plan-status,.attempt-status,.career-stage-badge,
+.access-pill.ready,.system-status.active{
+  background:#edf3f6!important;
+  color:#082f49!important;
+}
+
+/* Student login — expensive dark-navy identity panel, clean white form. */
+.student-login-stage61{
+  background:#f4f6f8!important;
+}
+.student-login-stage61-shell{
+  filter:none!important;
+}
+.student-login-stage61-brand{
+  background:linear-gradient(145deg,#06283d 0%,#082f49 58%,#0b3b57 100%)!important;
+  border-color:rgba(255,255,255,.08)!important;
+  box-shadow:0 24px 70px rgba(8,47,73,.16)!important;
+}
+.student-login-stage61-brand .stage6-kicker,
+.student-login-stage65-center>span{
+  color:#9bd1e8!important;
+}
+.student-login-stage65-center h2,
+.student-login-stage65-bottom h1{color:#fff!important}
+.student-login-stage65-center>p,
+.student-login-stage65-bottom>p:not(.stage6-kicker),
+.student-login-stage65-bottom blockquote{color:#d4e2e9!important}
+.student-login-stage65-points>div{
+  background:rgba(255,255,255,.045)!important;
+  border-color:rgba(255,255,255,.11)!important;
+}
+.student-login-stage65-points strong{color:#cdb56b!important}
+.student-login-stage65-points span{color:#f4f8fa!important}
+.student-login-stage61-card{
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+  box-shadow:0 18px 48px rgba(8,47,73,.07)!important;
+}
+.student-login-stage61-intro h2{color:#082f49!important}
+.student-login-stage61-intro>svg{color:#082f49!important}
+.student-login-control{
+  background:#fbfcfd!important;
+  border-color:#dce5e9!important;
+}
+.student-login-control:focus-within{
+  border-color:#86aebf!important;
+  box-shadow:0 0 0 4px rgba(8,47,73,.07)!important;
+}
+.student-login-privacy{
+  background:#f3f6f8!important;
+  border-color:#dfe7eb!important;
+  color:#506773!important;
+}
+
+/* Student portal — same navy system, calmer than staff but identical language. */
+.student-portal-stage61,
+.assessment-page,
+.career-page{background:#f4f6f8!important}
+.student-portal-brandbar,
+.student-workspace-topbar{
+  background:rgba(255,255,255,.96)!important;
+  border-color:#dfe6eb!important;
+  box-shadow:0 5px 18px rgba(8,47,73,.025)!important;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.student-portal-brandbar-identity strong,
+.workspace-brand strong{color:#082f49!important}
+.student-portal-card,
+.assessment-section-card,
+.assessment-review-card,
+.student-plan-card{
+  border-color:#dfe6eb!important;
+  background:#fff!important;
+  box-shadow:0 7px 22px rgba(8,47,73,.03)!important;
+}
+.student-portal-card>svg:first-child,
+.student-portal-card>div:first-child{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.student-portal-card span{color:#0b3b57!important}
+.student-portal-card h2{color:#082f49!important}
+.student-portal-logout{
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+  color:#082f49!important;
+}
+.assessment-section-card h2,
+.assessment-review-card h2{color:#082f49!important}
+.assessment-option{
+  border-color:#dfe6eb!important;
+  background:#fff!important;
+}
+.assessment-option:hover,.assessment-option.selected{
+  border-color:#9eb9c6!important;
+  background:#f3f6f8!important;
+}
+.assessment-option.selected{box-shadow:inset 0 0 0 1px #082f49!important}
+
+/* Student workspace / proposals / LifeMap. */
+.student-workspace-page{background:#f4f6f8!important}
+.student-hero h1{color:#082f49!important}
+.workspace-tabs{
+  border-color:#dfe6eb!important;
+  box-shadow:0 5px 18px rgba(8,47,73,.025)!important;
+}
+.workspace-tabs button.active{
+  background:#082f49!important;
+  color:#fff!important;
+}
+.journey-strip{
+  border-color:#dfe6eb!important;
+  box-shadow:0 5px 18px rgba(8,47,73,.025)!important;
+}
+.journey-node.done span,.aspect-index,.roadmap-number{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.journey-node.done strong{color:#082f49!important}
+.life-aspect.filled{
+  border-color:#cbdbe3!important;
+  background:#fbfcfd!important;
+}
+.version-card.current{
+  background:#f0f4f6!important;
+  border-color:#cad9e0!important;
+}
+.version-actions button,.refresh-btn{
+  color:#082f49!important;
+  border-color:#d8e2e7!important;
+  background:#fff!important;
+}
+
+/* BK / counseling. */
+.assessment-inbox-metric strong{color:#082f49!important}
+.need-signal-icon{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.need-signal-meta span{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.assessment-attempt-row:hover{background:#f7f9fa!important}
+.review-answer{
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+}
+.review-answer::before{background:#a7bdc8!important}
+.review-answer small{color:#536e7c!important}
+.review-answer strong{color:#082f49!important}
+.review-answer p{background:#f5f7f9!important;color:#314956!important}
+.counselor-review-form{box-shadow:0 12px 34px rgba(8,47,73,.055)!important}
+.bk-assessment-quick-access,
+.bk-quick-stack .bk-assessment-quick-access:hover{
+  background:#082f49!important;
+  color:#fff!important;
+  border-color:#082f49!important;
+}
+.bk-quick-stack .bk-assessment-quick-access{
+  color:#082f49!important;
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+}
+
+/* System Management. */
+.system-management-page{background:#f4f6f8!important}
+.system-topbar{border-color:#dfe6eb!important}
+.system-hero h1,.system-topbar strong,.system-card-head h2,
+.system-stat strong,.system-card-head span{color:#082f49!important}
+.system-tabs{border-color:#dfe6eb!important}
+.system-tabs button.active{background:#082f49!important;color:#fff!important}
+.system-stat>div,.system-avatar{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.system-search,.import-drop{
+  background:#f8fafb!important;
+  border-color:#dce5e9!important;
+}
+.import-drop{color:#082f49!important}
+.system-pin-reveal{
+  background:#eef3f6!important;
+  border-color:#d4e1e7!important;
+  color:#082f49!important;
+}
+
+/* Career + action plan: remove the remaining green/teal feel. */
+.student-plan-status.completed,
+.published,.career-editor-status .ready,
+.career-stage-badge.eksplorasi,.career-stage-badge.punya_rencana{
+  background:#edf3f6!important;
+  color:#082f49!important;
+}
+.student-plan-note{
+  background:#f3f6f8!important;
+  border-color:#dce5e9!important;
+  color:#082f49!important;
+}
+.career-feature-card>svg:first-child,
+.career-profile-icon,.career-choice-label,
+.career-compare-head a,.career-select-check,
+.career-metric-icon,.career-plan-mini b{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.career-feature-card:hover,.career-profile-card:hover,
+.career-select-card:hover,.career-select-card.selected,
+.career-admin-list-item:hover,.career-admin-list-item.active{
+  border-color:#b9cbd4!important;
+  background:#f7f9fa!important;
+}
+.career-select-card.selected .career-select-check{
+  background:#082f49!important;
+  border-color:#082f49!important;
+  color:#fff!important;
+}
+.career-360-hero h1,.career-profile-card h2,
+.career-feature-card h2,.career-admin-list-item strong{color:#082f49!important}
+
+/* Tables/lists/scroll areas feel deliberate instead of raw. */
+.career-admin-list-items,.career-monitor-table,.report-student-list,
+.review-answer-list,.docx-preview,.workspace-tabs{
+  scrollbar-width:thin;
+  scrollbar-color:#b7c6ce transparent;
+}
+.career-monitor-head,.import-head{
+  background:#f3f6f8!important;
+}
+.career-monitor-row:hover,.system-student-list article:hover{
+  background:#fafcfd!important;
+}
+
+/* Small responsive corrections — no horizontal spill. */
+@media(max-width:1080px){
+  .stage6-content{padding-inline:22px!important}
+  .stage6-hero{min-height:unset!important}
+}
+@media(max-width:760px){
+  .stage6-sidebar{
+    background:#fff!important;
+    padding:10px 12px 12px!important;
+  }
+  .stage6-nav{gap:6px!important}
+  .stage6-nav a,.stage6-nav button{
+    font-size:12px!important;
+    min-height:46px!important;
+    border-radius:13px!important;
+  }
+  .stage6-nav a svg,.stage6-nav button svg{
+    width:30px!important;height:30px!important;flex-basis:30px!important;padding:7px!important;
+  }
+  .stage6-topbar{
+    position:sticky!important;
+    padding:11px 14px!important;
+    min-height:66px!important;
+  }
+  .stage6-topbar-copy span{display:none}
+  .stage6-search{width:min(58vw,360px)!important}
+  .stage6-hero-actions{display:grid!important;grid-template-columns:1fr!important;width:100%!important}
+  .stage6-primary-link,.stage6-secondary-link{width:100%!important;justify-content:center!important}
+  .student-login-stage61-brand{box-shadow:none!important}
+}
+@media(max-width:520px){
+  .stage6-nav{grid-template-columns:1fr 1fr!important}
+  .stage6-topbar{display:grid!important;grid-template-columns:1fr!important}
+  .stage6-search{width:100%!important}
+  .stage6-content{padding:12px 10px 28px!important}
+  .stage6-hero{padding:21px 18px!important;border-radius:19px!important}
+  .stage6-stat-grid{grid-template-columns:1fr 1fr!important}
+  .stage62-insight-grid{grid-template-columns:1fr!important}
+  .stage6-directory{padding:13px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .stage6-reveal.is-visible{animation:none!important}
+}
