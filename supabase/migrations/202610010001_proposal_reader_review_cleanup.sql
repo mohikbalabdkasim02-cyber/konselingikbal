@@ -103,7 +103,7 @@ set extraction_status = case
       else 'unsupported'
     end,
     extracted_at=null,
-    extracted_data=null,
+    extracted_data='{}'::jsonb,
     extraction_notes=null
 where document_id in (
   select id from public.student_documents where document_type='proposal_hidup'
