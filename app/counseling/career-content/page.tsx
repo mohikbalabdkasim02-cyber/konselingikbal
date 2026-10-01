@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, BookOpenCheck, CheckCircle2, FilePenLine, Plus, Search, Send, ShieldCheck } from "lucide-react";
+import { ArrowLeft, BookOpenCheck, CheckCircle2, ChevronRight, FilePenLine, Plus, Search, Send, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toUserMessage } from "@/lib/errors";
 import { buildCareerProfilePayload, careerProfilePublicationReady, type CareerProfileDraft } from "@/lib/career-content";
