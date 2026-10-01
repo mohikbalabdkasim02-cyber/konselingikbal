@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, CalendarClock, Check, CheckCircle2, ChevronDown, ClipboardList, Plus, Search, Users, AlertCircle, BarChart3, Download, GraduationCap, X } from "lucide-react";
+import { ArrowLeft, BookOpenCheck, BriefcaseBusiness, CalendarClock, Check, CheckCircle2, ChevronDown, ClipboardCheck, ClipboardList, KeyRound, Plus, Search, Users, AlertCircle, BarChart3, Download, GraduationCap, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import "./stage3.css";
@@ -54,6 +54,13 @@ export default function CounselingPage(){
     <section className="student-hero"><div><p className="eyebrow">BINA INSAN • BK CONTROL CENTER</p><h1>Monitoring, tindak lanjut, dan keputusan BK dalam satu ruang.</h1><p>Prioritaskan siswa yang membutuhkan perhatian, pantau asesmen dan follow-up, lalu hubungkan setiap temuan ke tindakan yang jelas.</p></div><div className="stage3-actions"><button className="stage3-action-btn" onClick={exportCsv}><Download size={16}/> Ekspor CSV</button></div></section>
     {msg&&<div className="workspace-message">{msg}</div>}
     <div className="stats-grid stage3-stats"><Metric label="Siswa aktif" value={stats.total} icon={<Users size={20}/>}/><Metric label="Pernah konseling" value={stats.counseled} icon={<ClipboardList size={20}/>}/><Metric label="Perlu follow-up" value={stats.follow} icon={<AlertCircle size={20}/>}/><Metric label="Proposal masuk" value={stats.proposal} icon={<BarChart3 size={20}/>}/></div>
+
+    <nav className="bk-mobile-actions" aria-label="Akses cepat BK">
+      <Link href="/counseling/assessments"><ClipboardCheck/><div><strong>Asesmen</strong><span>Jawaban & need signals</span></div></Link>
+      <Link href="/counseling/student-access"><KeyRound/><div><strong>Akses siswa</strong><span>PIN & portal siswa</span></div></Link>
+      <Link href="/counseling/career-monitoring"><BriefcaseBusiness/><div><strong>Karier</strong><span>Monitoring perjalanan</span></div></Link>
+      <Link href="/counseling/career-content"><BookOpenCheck/><div><strong>Konten</strong><span>Career 360°</span></div></Link>
+    </nav>
 
     <section className="stage3-grid">
       <div className="workspace-card span-2"><div className="card-title"><Users size={18}/><div><p className="eyebrow">MONITORING</p><h2>Peta Siswa</h2></div></div><div className="stage3-filters"><div className="search-box"><Search size={17}/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Cari siswa / kelas / arah karier"/></div><select value={grade} onChange={e=>setGrade(e.target.value)}><option value="all">Semua tingkat</option><option value="10">Kelas X</option><option value="11">Kelas XI</option><option value="12">Kelas XII</option></select></div>
