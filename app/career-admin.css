@@ -105,8 +105,11 @@
 
 /* Career page heading alignment */
 .career-admin-shell .assessment-heading{
+  display:flex;
   align-items:flex-end;
-  gap:18px;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:18px;
 }
 .career-admin-shell .assessment-heading>div:first-child{
   max-width:930px;
@@ -159,6 +162,9 @@
     margin-left:auto;
   }
   .career-admin-shell .assessment-heading{
+    display:grid;
+    grid-template-columns:1fr;
     align-items:stretch;
+    gap:14px;
   }
 }
