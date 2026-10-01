@@ -2,15 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpenCheck, BriefcaseBusiness, ClipboardCheck, KeyRound } from "lucide-react";
+import { BookOpenCheck, BriefcaseBusiness, ClipboardCheck, KeyRound, Settings } from "lucide-react";
+
+const items = [
+  { href:"/counseling/assessments", icon:ClipboardCheck, full:"Asesmen & Need Signals", short:"Asesmen" },
+  { href:"/counseling/student-access", icon:KeyRound, full:"Akses Siswa & PIN", short:"Akses" },
+  { href:"/counseling/career-monitoring", icon:BriefcaseBusiness, full:"Monitoring Karier", short:"Karier" },
+  { href:"/counseling/career-content", icon:BookOpenCheck, full:"Career Content Studio", short:"Konten" },
+  { href:"/system-management", icon:Settings, full:"Manajemen Sistem", short:"Sistem" },
+];
 
 export function BKQuickAccess(){
   const pathname=usePathname();
   if(pathname!=="/counseling") return null;
-  return <div className="bk-quick-stack">
-    <Link href="/counseling/assessments" className="bk-assessment-quick-access"><ClipboardCheck size={17}/><span>Asesmen & Need Signals</span></Link>
-    <Link href="/counseling/student-access" className="bk-assessment-quick-access"><KeyRound size={17}/><span>Akses Siswa & PIN</span></Link>
-    <Link href="/counseling/career-monitoring" className="bk-assessment-quick-access"><BriefcaseBusiness size={17}/><span>Monitoring Karier</span></Link>
-    <Link href="/counseling/career-content" className="bk-assessment-quick-access"><BookOpenCheck size={17}/><span>Career Content Studio</span></Link>
-  </div>;
+  return <nav className="bk-quick-stack" aria-label="Akses cepat BK">
+    {items.map(({href,icon:Icon,full,short})=>
+      <Link key={href} href={href} className="bk-assessment-quick-access" aria-label={full}>
+        <Icon size={18}/>
+        <span className="bk-label-full">{full}</span>
+        <span className="bk-label-short">{short}</span>
+      </Link>
+    )}
+  </nav>;
 }

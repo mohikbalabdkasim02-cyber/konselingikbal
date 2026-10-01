@@ -391,3 +391,1587 @@ html{
     animation-iteration-count:1!important;
   }
 }
+
+
+/* Stage 6.5 — Student Portal welcome composition + portrait precision. */
+body{
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+.student-login-stage61-brand{
+  display:grid!important;
+  grid-template-rows:auto 1fr auto;
+  align-content:stretch;
+  gap:26px;
+  overflow:hidden;
+}
+.student-login-stage65-center{
+  align-self:center;
+  max-width:540px;
+  padding:26px 0 24px;
+  border-top:1px solid rgba(255,255,255,.13);
+  border-bottom:1px solid rgba(255,255,255,.13);
+}
+.student-login-stage65-center>span{
+  display:block;
+  margin-bottom:10px;
+  color:var(--stage6-sky);
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.18em;
+}
+.student-login-stage65-center h2{
+  margin:0;
+  max-width:500px;
+  color:#fff;
+  font-size:clamp(27px,2.4vw,38px);
+  line-height:1.08;
+  letter-spacing:-.045em;
+}
+.student-login-stage65-center>p{
+  margin:13px 0 0;
+  max-width:500px;
+  color:#cfe0e7;
+  font-size:14px;
+  line-height:1.65;
+}
+.student-login-stage65-points{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:9px;
+  margin-top:20px;
+}
+.student-login-stage65-points>div{
+  min-width:0;
+  padding:12px 11px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  background:rgba(255,255,255,.045);
+  display:grid;
+  gap:6px;
+}
+.student-login-stage65-points strong{
+  color:var(--stage6-gold);
+  font-size:10px;
+  letter-spacing:.1em;
+}
+.student-login-stage65-points span{
+  color:#edf6f9;
+  font-size:11px;
+  font-weight:760;
+  line-height:1.35;
+}
+.student-login-stage65-bottom{
+  max-width:560px;
+}
+.student-login-stage65-bottom h1{
+  font-size:clamp(44px,4.8vw,66px)!important;
+  margin:0 0 14px!important;
+}
+.student-login-stage65-bottom>p:not(.stage6-kicker){
+  margin:0;
+  max-width:520px;
+  color:#d7e6ec;
+  font-size:16px;
+  line-height:1.65;
+}
+.student-login-stage65-bottom blockquote{
+  margin:16px 0 0;
+  padding-left:14px;
+  border-left:2px solid rgba(84,200,246,.72);
+  color:#bcd2dc;
+  font-size:12px;
+  line-height:1.55;
+  font-style:normal;
+}
+.student-login-stage61-card{
+  box-shadow:0 18px 52px rgba(8,62,89,.075)!important;
+}
+.student-login-stage61-card,
+.student-login-stage61-brand{
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.student-login-submit:active,
+.stage6-nav a:active,
+.bk-assessment-quick-access:active,
+.stage6-primary-link:active,
+.stage6-secondary-link:active{
+  transform:translateY(1px) scale(.995);
+}
+
+/* Slightly calmer desktop spacing across primary admin surfaces. */
+@media(min-width:1101px){
+  .stage6-content{
+    padding-top:30px;
+  }
+  .stage6-directory,
+  .stage62-insight-card,
+  .stage62-control .workspace-card{
+    border-radius:22px!important;
+  }
+}
+
+/* Portrait tablet: keep brand storytelling visible without pushing the form too far away. */
+@media(max-width:900px) and (orientation:portrait){
+  .student-login-stage61-shell{
+    width:min(700px,100%)!important;
+    gap:14px!important;
+  }
+  .student-login-stage61-brand{
+    min-height:440px!important;
+    padding:28px 30px!important;
+    border-radius:24px!important;
+    gap:18px;
+  }
+  .student-login-stage65-center{
+    max-width:none;
+    padding:20px 0;
+  }
+  .student-login-stage65-center h2{
+    max-width:600px;
+    font-size:32px;
+  }
+  .student-login-stage65-points{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .student-login-stage65-bottom h1{
+    font-size:42px!important;
+  }
+  .student-login-stage65-bottom>p:not(.stage6-kicker){
+    font-size:14px;
+  }
+  .student-login-stage61-card{
+    padding:30px!important;
+  }
+
+  .stage6-sidebar{
+    padding:12px 14px!important;
+  }
+  .stage6-nav a,.stage6-nav button{
+    min-height:42px!important;
+    border-radius:12px!important;
+  }
+  .stage6-content{
+    padding:18px 16px 30px!important;
+  }
+  .stage6-hero{
+    padding:24px!important;
+  }
+  .stage6-directory{
+    padding:17px!important;
+  }
+  .stage62-insight-grid{
+    gap:12px!important;
+  }
+}
+
+/* Phone portrait: concise brand story first, then the login task immediately. */
+@media(max-width:620px){
+  .student-login-stage61-shell{
+    display:block!important;
+  }
+  .student-login-stage61-brand{
+    min-height:300px!important;
+    padding:20px 20px 22px!important;
+    border-radius:0!important;
+    gap:14px;
+  }
+  .student-login-stage61-brand .student-login-stage61-logo{
+    width:150px!important;
+    border-radius:15px!important;
+    padding:9px 11px!important;
+  }
+  .student-login-stage65-center{
+    align-self:auto;
+    padding:14px 0 12px;
+  }
+  .student-login-stage65-center>span{
+    margin-bottom:7px;
+    font-size:9px;
+  }
+  .student-login-stage65-center h2{
+    max-width:420px;
+    font-size:27px;
+    line-height:1.08;
+  }
+  .student-login-stage65-center>p{
+    margin-top:9px;
+    font-size:12px;
+    line-height:1.5;
+  }
+  .student-login-stage65-points{
+    display:none;
+  }
+  .student-login-stage65-bottom .stage6-kicker,
+  .student-login-stage65-bottom>p:not(.stage6-kicker),
+  .student-login-stage65-bottom blockquote{
+    display:none;
+  }
+  .student-login-stage65-bottom h1{
+    margin:0!important;
+    font-size:34px!important;
+  }
+  .student-login-stage61-card{
+    padding:24px 18px 28px!important;
+  }
+  .student-login-stage61-intro{
+    gap:12px!important;
+    margin-bottom:15px!important;
+  }
+  .student-login-stage61-intro h2{
+    font-size:25px!important;
+  }
+  .student-login-privacy{
+    margin-bottom:18px!important;
+  }
+  .student-login-form-stage61{
+    gap:13px!important;
+  }
+  .student-login-control,
+  .student-login-submit{
+    height:50px!important;
+  }
+  .student-login-stage61-footer{
+    display:none!important;
+  }
+
+  .stage6-sidebar-brand{
+    padding-bottom:8px!important;
+  }
+  .stage6-nav{
+    gap:4px!important;
+  }
+  .stage6-nav a,.stage6-nav button{
+    min-height:39px!important;
+    padding:0 9px!important;
+    border-radius:11px!important;
+    font-size:12px!important;
+  }
+  .stage6-topbar{
+    padding:12px 14px!important;
+  }
+  .stage6-content{
+    padding:14px 12px 26px!important;
+  }
+  .stage6-hero{
+    padding:21px!important;
+    margin-bottom:14px!important;
+  }
+  .stage6-hero h1{
+    font-size:31px!important;
+  }
+  .stage6-stat-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;
+    margin-bottom:14px!important;
+  }
+  .stage6-stat{
+    min-height:96px!important;
+    padding:14px!important;
+  }
+  .stage6-stat strong{
+    font-size:27px!important;
+  }
+  .stage6-directory{
+    border-radius:19px!important;
+    padding:14px!important;
+  }
+  .stage6-student-row{
+    padding:13px 2px!important;
+    gap:10px!important;
+  }
+  .stage6-avatar{
+    width:40px!important;
+    height:40px!important;
+    border-radius:12px!important;
+  }
+}
+
+
+/* Stage 7 — Student 360 assessment history + report affordances. */
+.student-assessment-history{display:grid;margin-top:14px}.student-assessment-history-row{display:grid;grid-template-columns:34px minmax(0,1fr) 20px;gap:11px;align-items:center;text-decoration:none;color:var(--stage6-ink);padding:13px 2px;border-top:1px solid var(--stage6-line)}.student-assessment-history-row:first-child{border-top:0}.student-assessment-history-row:hover{background:#f8fbfc}.student-assessment-history-row>div{display:grid;gap:3px}.student-assessment-history-row strong{font-size:13px}.student-assessment-history-row small{font-size:11px;color:var(--stage6-muted)}.student-assessment-history-row>svg{color:var(--stage6-muted)}.review-answer.unanswered{background:#fafcfd!important;border-style:dashed!important}.review-answer.unanswered p{color:#8b99a2!important;font-style:italic}
+
+
+/* Stage 7 — dynamic Student Portal access management. */
+.student-pin-once{max-width:1272px;margin:0 auto 16px;padding:14px 16px;border:1px solid #c5e0eb;border-radius:16px;background:#edf6fa;color:var(--stage6-navy);display:flex;align-items:flex-start;gap:12px}.student-pin-once>div{display:grid;gap:4px}.student-pin-once span{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:24px;letter-spacing:.12em;font-weight:900}.student-pin-once small{color:var(--stage6-muted)}.student-access-status-list{display:grid}.student-access-status-row{display:grid;grid-template-columns:minmax(220px,1.4fr) 110px 110px 130px;gap:10px;align-items:center;padding:12px 2px;border-top:1px solid var(--stage6-line)}.student-access-status-row:first-child{border-top:0}.student-access-status-row>div{display:grid;gap:3px}.student-access-status-row strong{font-size:13px}.student-access-status-row small{font-size:11px;color:var(--stage6-muted)}.student-access-status-row button{border:1px solid var(--stage6-line);background:#fff;color:var(--stage6-navy);border-radius:10px;padding:8px 10px;font-size:11px;font-weight:850;display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer}.access-pill{width:max-content;border-radius:999px;padding:6px 8px;background:#f2f5f7;color:var(--stage6-muted);font-size:9px;font-weight:900}.access-pill.ready{background:#e9f3f7;color:var(--stage6-navy)}.access-pill.locked{background:#fff1ed;color:#934b40}@media(max-width:760px){.student-access-status-row{grid-template-columns:minmax(0,1fr) auto}.student-access-status-row>span{grid-row:2}.student-access-status-row button{grid-column:2;grid-row:1/3}}
+
+
+/* Stage 8 — premium dashboard, resilient navigation, scroll reveal, and assessment review polish. */
+:root{
+  --lifemap-navy:#073a56;
+  --lifemap-navy-2:#0b4d6d;
+  --lifemap-sky:#5cc9ef;
+  --lifemap-ice:#eef6f9;
+  --lifemap-line:#dbe6eb;
+  --lifemap-ink:#102c3d;
+  --lifemap-muted:#6d8290;
+  --lifemap-shadow:0 18px 55px rgba(8,62,89,.08);
+  --lifemap-shadow-soft:0 10px 32px rgba(8,62,89,.055);
+}
+html{scrollbar-gutter:stable}
+body{
+  background:
+    radial-gradient(circle at 82% 8%,rgba(92,201,239,.08),transparent 28rem),
+    linear-gradient(180deg,#f6f9fb 0%,#f3f7f9 100%)!important;
+}
+::selection{background:rgba(92,201,239,.28);color:var(--lifemap-navy)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:#eef3f6}
+::-webkit-scrollbar-thumb{background:#bdcdd6;border:3px solid #eef3f6;border-radius:999px}
+::-webkit-scrollbar-thumb:hover{background:#95afbd}
+
+.stage6-shell{
+  grid-template-columns:276px minmax(0,1fr)!important;
+  background:transparent!important;
+}
+.stage6-sidebar{
+  width:276px;
+  padding:22px 18px 18px!important;
+  gap:18px!important;
+  border-right:1px solid rgba(8,62,89,.085)!important;
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:12px 0 42px rgba(8,62,89,.045)!important;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.stage6-sidebar-brand{
+  margin:0 2px 7px;
+  padding:14px 13px 18px!important;
+  border:1px solid #e3edf1!important;
+  border-radius:19px;
+  background:linear-gradient(145deg,#fff 0%,#f5fafc 100%);
+  box-shadow:0 9px 28px rgba(8,62,89,.045);
+}
+.stage6-sidebar-brand .brand-logo{width:180px!important}
+.stage6-nav{gap:8px!important}
+.stage6-nav a,.stage6-nav button{
+  position:relative;
+  min-height:54px!important;
+  width:100%;
+  padding:7px 12px!important;
+  border:1px solid transparent!important;
+  border-radius:16px!important;
+  color:#6c8290!important;
+  background:transparent!important;
+  font-size:14px!important;
+  font-weight:780!important;
+  line-height:1.2;
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  text-decoration:none;
+  cursor:pointer;
+  overflow:hidden;
+}
+.stage6-nav a svg,.stage6-nav button svg{
+  width:34px!important;
+  height:34px!important;
+  padding:8px;
+  flex:0 0 34px!important;
+  border-radius:11px;
+  background:#f2f6f8;
+  color:#6e8592;
+  transition:background-color .2s ease,color .2s ease,transform .2s ease;
+}
+.stage6-nav a:hover,.stage6-nav button:hover{
+  transform:translateX(2px)!important;
+  background:#f7fafc!important;
+  color:var(--lifemap-navy)!important;
+  border-color:#e7eef2!important;
+}
+.stage6-nav a:hover svg,.stage6-nav button:hover svg{
+  background:#eaf4f8;
+  color:var(--lifemap-navy);
+}
+.stage6-nav a.active,.stage6-nav button.active{
+  background:linear-gradient(100deg,#e9f4f8 0%,#f0f7fa 100%)!important;
+  color:var(--lifemap-navy)!important;
+  border-color:#d7e8ef!important;
+  box-shadow:0 8px 22px rgba(8,62,89,.055)!important;
+}
+.stage6-nav a.active svg,.stage6-nav button.active svg{
+  background:#fff;
+  color:var(--lifemap-navy);
+  box-shadow:0 5px 14px rgba(8,62,89,.08);
+}
+.stage6-nav a.active::before,.stage6-nav button.active::before{
+  content:"";
+  position:absolute;
+  left:-1px;
+  top:11px;
+  bottom:11px;
+  width:4px;
+  border-radius:0 999px 999px 0;
+  background:var(--lifemap-sky);
+}
+.stage6-sidebar-foot{
+  padding-top:15px!important;
+  border-top:1px solid #e6eef2!important;
+}
+.stage6-school-year{
+  margin:0 2px;
+  padding:11px 12px!important;
+  border:1px solid #e6eef2;
+  border-radius:14px;
+  background:#f8fbfc;
+}
+.stage6-school-year span{font-size:9px!important}
+.stage6-school-year strong{font-size:13px!important}
+
+.stage6-topbar{
+  min-height:82px!important;
+  padding:15px 34px!important;
+  background:rgba(255,255,255,.86)!important;
+  border-bottom:1px solid rgba(8,62,89,.07)!important;
+  box-shadow:0 8px 28px rgba(8,62,89,.035)!important;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.stage6-topbar-copy strong{color:var(--lifemap-navy);font-size:15px!important}
+.stage6-search{
+  height:48px!important;
+  border-radius:15px!important;
+  border-color:#dce7ec!important;
+  background:#fbfdfe!important;
+  box-shadow:0 5px 16px rgba(8,62,89,.025);
+}
+.stage6-search:focus-within{
+  border-color:#9ed8eb!important;
+  box-shadow:0 0 0 4px rgba(92,201,239,.12)!important;
+}
+
+.stage6-content{max-width:1480px!important;padding:30px 34px 46px!important}
+.stage6-hero{
+  position:relative;
+  overflow:hidden;
+  min-height:246px;
+  padding:35px 38px!important;
+  border:1px solid #dce9ef!important;
+  border-radius:28px!important;
+  background:
+    radial-gradient(circle at 86% 22%,rgba(92,201,239,.22),transparent 18rem),
+    linear-gradient(130deg,#ffffff 0%,#f4fafc 57%,#edf7fb 100%)!important;
+  box-shadow:var(--lifemap-shadow-soft)!important;
+}
+.stage6-hero::after{
+  content:"";
+  position:absolute;
+  right:-45px;
+  bottom:-92px;
+  width:260px;
+  height:260px;
+  border:1px solid rgba(8,62,89,.07);
+  border-radius:50%;
+  box-shadow:0 0 0 30px rgba(92,201,239,.035),0 0 0 62px rgba(8,62,89,.025);
+  pointer-events:none;
+}
+.stage6-hero-copy{position:relative;z-index:1}
+.stage6-hero h1{
+  max-width:760px;
+  color:var(--lifemap-navy)!important;
+  letter-spacing:-.045em!important;
+  line-height:1.04!important;
+}
+.stage6-hero-copy>p:last-child{max-width:720px!important;color:#607785!important}
+.stage6-hero-actions{position:relative;z-index:2}
+.stage6-primary-link,.stage6-secondary-link{
+  min-height:46px!important;
+  border-radius:14px!important;
+  box-shadow:none!important;
+}
+.stage6-primary-link{background:var(--lifemap-navy)!important}
+.stage6-primary-link:hover{background:#062f46!important;transform:translateY(-1px)}
+.stage6-secondary-link:hover{transform:translateY(-1px);border-color:#b8d6e1!important}
+
+.stage6-stat-grid{gap:14px!important}
+.stage6-stat{
+  position:relative;
+  overflow:hidden;
+  min-height:126px!important;
+  padding:21px 22px!important;
+  border:1px solid #e0e9ee!important;
+  border-radius:21px!important;
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:0 9px 28px rgba(8,62,89,.04)!important;
+}
+.stage6-stat::after{
+  content:"";
+  position:absolute;
+  width:54px;height:54px;
+  right:-17px;top:-17px;
+  border-radius:50%;
+  background:rgba(92,201,239,.10);
+}
+.stage6-stat span{font-size:12px!important;font-weight:780!important;color:#718692!important}
+.stage6-stat strong{color:var(--lifemap-navy)!important;letter-spacing:-.05em}
+.stage6-stat small{color:#8a9aa3!important}
+.stage6-stat:hover{transform:translateY(-2px);box-shadow:0 15px 36px rgba(8,62,89,.075)!important}
+
+.stage62-insight-grid{gap:15px!important}
+.stage62-insight-card,.stage6-directory{
+  border:1px solid #dee8ed!important;
+  border-radius:24px!important;
+  background:rgba(255,255,255,.96)!important;
+  box-shadow:0 11px 34px rgba(8,62,89,.045)!important;
+}
+.stage62-insight-card{padding:23px!important}
+.stage62-domain-track{height:9px!important;background:#edf2f5!important;overflow:hidden}
+.stage62-domain-track i{
+  background:linear-gradient(90deg,var(--lifemap-navy),#2b86aa,var(--lifemap-sky))!important;
+  transition:width .8s cubic-bezier(.2,.8,.2,1)!important;
+}
+.stage62-attention-item{
+  border-radius:13px!important;
+  transition:background .18s ease,transform .18s ease;
+}
+.stage62-attention-item:hover{background:#f6fafc!important;transform:translateX(2px)}
+.stage6-directory{padding:24px!important}
+.stage6-directory-head h2{color:var(--lifemap-navy)!important}
+.stage6-directory-head select{
+  min-height:44px;
+  border:1px solid #dce7ec!important;
+  border-radius:13px!important;
+  background:#fbfdfe!important;
+}
+.stage6-filter-row button{
+  border-radius:999px!important;
+  border:1px solid #e0e9ed!important;
+  background:#fff!important;
+}
+.stage6-filter-row button.active{
+  background:var(--lifemap-navy)!important;
+  color:#fff!important;
+  border-color:var(--lifemap-navy)!important;
+  box-shadow:0 7px 18px rgba(8,62,89,.13);
+}
+.stage6-student-row{
+  border-radius:14px;
+  padding:14px 10px!important;
+  border-top:0!important;
+  border-bottom:1px solid #edf2f4!important;
+}
+.stage6-student-row:hover{
+  background:#f7fbfd!important;
+  transform:translateX(2px)!important;
+}
+.stage6-student-row:last-child{border-bottom:0!important}
+.stage6-avatar{
+  background:linear-gradient(145deg,#eaf4f8,#f6fafc)!important;
+  color:var(--lifemap-navy)!important;
+  border:1px solid #dbeaf0;
+}
+
+/* Scroll reveal. JS only adds .is-visible; content stays usable without animation. */
+.stage6-reveal{
+  opacity:0;
+  transform:translateY(18px);
+  transition:opacity .55s cubic-bezier(.22,.8,.28,1),transform .55s cubic-bezier(.22,.8,.28,1);
+}
+.stage6-reveal.is-visible{opacity:1;transform:translateY(0)}
+.stage6-stat-grid.stage6-reveal .stage6-stat{transition:transform .2s ease,box-shadow .2s ease,opacity .5s ease}
+.stage6-stat-grid.stage6-reveal.is-visible .stage6-stat:nth-child(2){transition-delay:.045s}
+.stage6-stat-grid.stage6-reveal.is-visible .stage6-stat:nth-child(3){transition-delay:.09s}
+.stage6-stat-grid.stage6-reveal.is-visible .stage6-stat:nth-child(4){transition-delay:.135s}
+
+/* Assessment review: readable question-by-question layout. */
+.counselor-review-grid{
+  max-width:1272px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:minmax(0,1.55fr) minmax(320px,.75fr);
+  gap:18px;
+  align-items:start;
+}
+.review-answer-list{display:grid;gap:12px;margin-top:18px}
+.review-answer{
+  position:relative;
+  padding:17px 18px 16px!important;
+  border:1px solid #e0e9ee!important;
+  border-radius:17px!important;
+  background:#fff!important;
+  box-shadow:0 5px 18px rgba(8,62,89,.025);
+}
+.review-answer::before{
+  content:"";
+  position:absolute;
+  left:0;top:14px;bottom:14px;width:3px;
+  border-radius:0 99px 99px 0;
+  background:#d6e8ef;
+}
+.review-answer small{
+  display:block;
+  margin-bottom:7px;
+  color:#7a8e99!important;
+  font-size:10px!important;
+  font-weight:850;
+  letter-spacing:.035em;
+}
+.review-answer strong{display:block;color:var(--lifemap-navy);font-size:14px;line-height:1.45}
+.review-answer p{
+  margin:10px 0 0;
+  padding:10px 12px;
+  border-radius:11px;
+  background:#f5f9fb;
+  color:#263f4d;
+  line-height:1.55;
+}
+.counselor-review-form{
+  position:sticky;
+  top:96px;
+  box-shadow:var(--lifemap-shadow-soft)!important;
+}
+.assessment-export-btn{
+  border:1px solid #cddde5!important;
+  background:#fff!important;
+  color:var(--lifemap-navy)!important;
+}
+.assessment-export-btn:hover{background:#f3f9fb!important;border-color:#afd3e1!important}
+
+/* Drawer feels like a premium profile panel. */
+.drawer-backdrop{backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.student-drawer{
+  border-left:1px solid rgba(8,62,89,.08);
+  box-shadow:-28px 0 72px rgba(8,62,89,.17)!important;
+}
+.drawer-close{transition:transform .18s ease,background .18s ease}
+.drawer-close:hover{transform:rotate(6deg);background:#eaf4f8!important}
+
+@media(max-width:1080px){
+  .stage6-shell{grid-template-columns:224px minmax(0,1fr)!important}
+  .stage6-sidebar{width:224px;padding-inline:13px!important}
+  .stage6-sidebar-brand .brand-logo{width:158px!important}
+  .stage6-nav a,.stage6-nav button{font-size:12.5px!important;padding-inline:9px!important}
+  .counselor-review-grid{grid-template-columns:1fr}
+  .counselor-review-form{position:static}
+}
+@media(max-width:760px){
+  .stage6-shell{display:block!important}
+  .stage6-sidebar{
+    position:relative!important;
+    width:100%!important;
+    height:auto!important;
+    border-right:0!important;
+    border-bottom:1px solid #e0e9ee!important;
+    border-radius:0!important;
+  }
+  .stage6-sidebar-brand{display:none}
+  .stage6-nav{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .stage6-nav a,.stage6-nav button{min-height:46px!important}
+  .stage6-sidebar-foot{display:none!important}
+  .stage6-content{padding:16px 14px 34px!important}
+  .stage6-hero{padding:25px 22px!important;border-radius:22px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .stage6-reveal{opacity:1!important;transform:none!important;transition:none!important}
+  .stage62-domain-track i{transition:none!important}
+}
+
+
+/* Stage 9 — unified Bina Insan premium navy design system.
+   Reliability rule: content is always visible; motion is enhancement only. */
+:root{
+  --stage6-navy:#082f49;
+  --stage6-navy-2:#0b3b57;
+  --stage6-sky:#63bfe3;
+  --stage6-gold:#c6a64a;
+  --stage6-ink:#122b3a;
+  --stage6-muted:#6b7e8a;
+  --stage6-bg:#f4f6f8;
+  --stage6-surface:#ffffff;
+  --stage6-line:#dfe6eb;
+  --stage6-soft:#eef3f6;
+
+  --bg:#f4f6f8;
+  --surface:#ffffff;
+  --ink:#122b3a;
+  --muted:#6b7e8a;
+  --line:#dfe6eb;
+  --primary:#082f49;
+  --primary-dark:#06283d;
+  --soft:#eef3f6;
+
+  --lifemap-navy:#082f49;
+  --lifemap-navy-2:#0b3b57;
+  --lifemap-sky:#63bfe3;
+  --lifemap-ice:#f2f6f8;
+  --lifemap-line:#dfe6eb;
+  --lifemap-ink:#122b3a;
+  --lifemap-muted:#6b7e8a;
+}
+
+html{background:#f4f6f8}
+body{
+  background:#f4f6f8!important;
+  color:#122b3a!important;
+  letter-spacing:-.005em;
+}
+button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
+button:disabled,a[aria-disabled="true"]{cursor:not-allowed}
+.loader{
+  width:34px!important;
+  height:34px!important;
+  border-color:#d9e2e7!important;
+  border-top-color:#082f49!important;
+  animation:spin .68s linear infinite!important;
+}
+
+/* Motion never controls visibility. */
+.stage6-reveal{
+  opacity:1!important;
+  transform:none!important;
+  transition:none!important;
+}
+.stage6-reveal.is-visible{
+  animation:lifemapPremiumReveal .42s cubic-bezier(.22,.8,.28,1) both;
+}
+@keyframes lifemapPremiumReveal{
+  from{opacity:.55;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Primary surfaces across all staff + student routes. */
+.stage6-shell,
+.student-workspace-page,
+.assessment-page,
+.student-portal-stage61,
+.student-login-stage61,
+.career-page,
+.system-management-page,
+.stage62-control,
+.bk-page,
+.bk-shell,
+.bk-dashboard,
+.counseling-page{
+  background:#f4f6f8!important;
+  color:#122b3a!important;
+}
+
+/* Staff dashboard — restrained, dark-navy, high contrast. */
+.stage6-sidebar{
+  background:#fff!important;
+  border-right:1px solid #dfe6eb!important;
+  box-shadow:10px 0 34px rgba(8,47,73,.035)!important;
+}
+.stage6-sidebar-brand{
+  background:#fff!important;
+  border:1px solid #e2e8ec!important;
+  box-shadow:none!important;
+}
+.stage6-nav a,.stage6-nav button{
+  color:#657a87!important;
+}
+.stage6-nav a svg,.stage6-nav button svg{
+  background:#f2f5f7!important;
+  color:#617884!important;
+}
+.stage6-nav a:hover,.stage6-nav button:hover{
+  color:#082f49!important;
+  background:#f5f8fa!important;
+  border-color:#e5ebef!important;
+}
+.stage6-nav a.active,.stage6-nav button.active{
+  color:#082f49!important;
+  background:#edf3f6!important;
+  border-color:#d9e4e9!important;
+  box-shadow:none!important;
+}
+.stage6-nav a.active svg,.stage6-nav button.active svg{
+  color:#082f49!important;
+  background:#fff!important;
+  border:1px solid #dfe8ec;
+  box-shadow:0 4px 12px rgba(8,47,73,.055)!important;
+}
+.stage6-nav a.active::before,.stage6-nav button.active::before{background:#082f49!important}
+.stage6-school-year{background:#f7f9fa!important;border-color:#e3e9ed!important}
+.stage6-school-year strong{color:#082f49!important}
+
+.stage6-topbar{
+  background:rgba(255,255,255,.95)!important;
+  border-color:#e1e7eb!important;
+  box-shadow:0 5px 18px rgba(8,47,73,.025)!important;
+}
+.stage6-topbar-copy strong{color:#082f49!important}
+.stage6-search{
+  background:#f8fafb!important;
+  border-color:#e0e7eb!important;
+  box-shadow:none!important;
+}
+.stage6-search:focus-within{
+  border-color:#8fb7ca!important;
+  box-shadow:0 0 0 4px rgba(8,47,73,.07)!important;
+}
+
+/* Hero: no washed-out cyan, explicit readable CTAs. */
+.stage6-hero{
+  min-height:238px!important;
+  border:1px solid #dfe6eb!important;
+  background:linear-gradient(135deg,#ffffff 0%,#f8fafb 68%,#f1f5f7 100%)!important;
+  box-shadow:0 12px 34px rgba(8,47,73,.045)!important;
+}
+.stage6-hero::after{
+  width:270px!important;
+  height:270px!important;
+  right:-80px!important;
+  bottom:-130px!important;
+  border-color:rgba(8,47,73,.06)!important;
+  box-shadow:0 0 0 34px rgba(8,47,73,.018),0 0 0 70px rgba(8,47,73,.012)!important;
+}
+.stage6-kicker,.eyebrow{color:#0b3b57!important}
+.stage6-hero h1{color:#082f49!important}
+.stage6-hero-copy>p:last-child{color:#657a87!important}
+.stage6-primary-link,
+.stage6-primary-link:visited{
+  background:#082f49!important;
+  border:1px solid #082f49!important;
+  color:#fff!important;
+  box-shadow:0 8px 20px rgba(8,47,73,.13)!important;
+}
+.stage6-primary-link svg{color:#fff!important}
+.stage6-primary-link:hover{
+  background:#06283d!important;
+  border-color:#06283d!important;
+  color:#fff!important;
+  transform:translateY(-1px)!important;
+}
+.stage6-secondary-link,
+.stage6-secondary-link:visited{
+  background:#fff!important;
+  border:1px solid #cfdbe1!important;
+  color:#082f49!important;
+  box-shadow:none!important;
+}
+.stage6-secondary-link svg{color:#082f49!important}
+.stage6-secondary-link:hover{
+  background:#f5f8fa!important;
+  border-color:#aebfc8!important;
+  color:#082f49!important;
+}
+
+.stage6-stat,
+.stage62-insight-card,
+.stage6-directory{
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+  box-shadow:0 8px 25px rgba(8,47,73,.035)!important;
+}
+.stage6-stat::after{background:rgba(8,47,73,.035)!important}
+.stage6-stat strong,
+.stage62-insight-card h2,
+.stage6-directory h2{color:#082f49!important}
+.stage62-domain-track{background:#e9eef1!important}
+.stage62-domain-track i{
+  background:linear-gradient(90deg,#082f49,#0b3b57)!important;
+}
+.stage62-attention-item strong{color:#082f49!important}
+.stage62-mini-note{
+  background:#f5f8fa!important;
+  border-color:#e1e8ec!important;
+  color:#6b7e8a!important;
+}
+.stage6-filter-row button{
+  color:#506773!important;
+  border-color:#dfe6eb!important;
+}
+.stage6-filter-row button.active{
+  background:#082f49!important;
+  border-color:#082f49!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+.stage6-student-row{
+  background:#fff!important;
+  border-color:#edf1f3!important;
+}
+.stage6-student-row:hover{
+  background:#f7f9fb!important;
+  transform:none!important;
+}
+.stage6-avatar{
+  background:#eef3f6!important;
+  color:#082f49!important;
+  border-color:#dde7eb!important;
+}
+.stage6-student-copy strong{color:#173646!important}
+.stage6-proposal-badge.ready{
+  background:#edf3f6!important;
+  color:#082f49!important;
+}
+.drawer-backdrop{background:rgba(6,30,45,.34)!important}
+.student-drawer{
+  background:#fff!important;
+  border-left-color:#dfe6eb!important;
+  box-shadow:-24px 0 64px rgba(8,47,73,.17)!important;
+}
+.drawer-avatar,.big-avatar{
+  background:#082f49!important;
+  color:#fff!important;
+}
+.open-profile-btn,.open-profile-btn:visited{
+  background:#082f49!important;
+  color:#fff!important;
+}
+
+/* Universal card geometry for detailed workspaces. */
+.workspace-card,
+.life-map-card,
+.version-panel,
+.panel,
+.side-card,
+.assessment-card,
+.assessment-section,
+.assessment-result-card,
+.action-plan-card,
+.career-card,
+.career-panel,
+.bk-card,
+.bk-panel,
+.bk-stat,
+.request-card,
+.queue-card,
+.system-card,
+.system-stat,
+.assessment-inbox-metric,
+.need-signal-card,
+.student-plan-card,
+.career-feature-card,
+.career-profile-card,
+.career-choice-card,
+.career-360-hero,
+.career-360-section,
+.career-select-card,
+.career-compare-column,
+.career-portfolio-item{
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+  box-shadow:0 7px 22px rgba(8,47,73,.03)!important;
+}
+.card-title h2,
+.workspace-card h2,
+.system-card h2,
+.bk-card h2,
+.bk-panel h2,
+.request-card h2,
+.career-card h2,
+.career-panel h2{color:#082f49!important}
+.card-title>svg,
+.system-card-head>svg,
+.career-360-section svg{color:#0b3b57!important}
+
+/* Inputs / controls — identical feel everywhere. */
+input,select,textarea{
+  color:#173646;
+}
+.profile-field input,.profile-field select,.profile-field textarea,
+.quick-add input,.life-aspect textarea,
+.counselor-review-form textarea,.counselor-review-form input,.counselor-review-form select,
+.system-form input,.system-form select,.system-form textarea,
+.system-report-select select,.system-toolbar select,
+.career-self-grid textarea,.career-choice-card input,.career-choice-card textarea,
+.career-portfolio-form input,.career-portfolio-form select,.career-portfolio-form textarea,
+.career-reflection-field textarea,.career-explorer-tools select,
+.career-admin-field input,.career-admin-field textarea,
+.student-plan-card textarea{
+  background:#fbfcfd!important;
+  border-color:#dce5e9!important;
+  color:#173646!important;
+}
+.profile-field input:focus,.profile-field select:focus,.profile-field textarea:focus,
+.quick-add input:focus,.life-aspect textarea:focus,
+.counselor-review-form textarea:focus,.counselor-review-form input:focus,.counselor-review-form select:focus,
+.system-form input:focus,.system-form select:focus,.system-form textarea:focus,
+.system-report-select select:focus,.system-toolbar select:focus,
+.career-self-grid textarea:focus,.career-choice-card input:focus,.career-choice-card textarea:focus,
+.career-portfolio-form input:focus,.career-portfolio-form select:focus,.career-portfolio-form textarea:focus,
+.career-reflection-field textarea:focus,.career-explorer-tools select:focus,
+.career-admin-field input:focus,.career-admin-field textarea:focus,
+.student-plan-card textarea:focus{
+  border-color:#86aebf!important;
+  box-shadow:0 0 0 3px rgba(8,47,73,.07)!important;
+}
+
+/* Buttons — one premium navy hierarchy across routes. */
+.primary-btn,.small-primary,.upload-btn,.quick-add button,
+.assessment-save,.assessment-primary,.system-primary,
+.need-signal-actions a,.portfolio-actions a,
+.student-login-submit,.student-portal-primary,
+.bk-primary,.career-primary{
+  background:#082f49!important;
+  color:#fff!important;
+  border-color:#082f49!important;
+  box-shadow:none!important;
+}
+.primary-btn:hover,.small-primary:hover,.upload-btn:hover,.quick-add button:hover,
+.assessment-save:hover,.assessment-primary:hover,.system-primary:hover,
+.student-login-submit:hover,.student-portal-primary:hover{
+  background:#06283d!important;
+  color:#fff!important;
+}
+.ghost-btn,.wide-secondary,.system-secondary,
+.assessment-secondary,.portfolio-actions button{
+  background:#eef3f6!important;
+  color:#082f49!important;
+  border-color:#dce5e9!important;
+}
+.status-pill,.student-plan-status,.attempt-status,.career-stage-badge,
+.access-pill.ready,.system-status.active{
+  background:#edf3f6!important;
+  color:#082f49!important;
+}
+
+/* Student login — expensive dark-navy identity panel, clean white form. */
+.student-login-stage61{
+  background:#f4f6f8!important;
+}
+.student-login-stage61-shell{
+  filter:none!important;
+}
+.student-login-stage61-brand{
+  background:linear-gradient(145deg,#06283d 0%,#082f49 58%,#0b3b57 100%)!important;
+  border-color:rgba(255,255,255,.08)!important;
+  box-shadow:0 24px 70px rgba(8,47,73,.16)!important;
+}
+.student-login-stage61-brand .stage6-kicker,
+.student-login-stage65-center>span{
+  color:#9bd1e8!important;
+}
+.student-login-stage65-center h2,
+.student-login-stage65-bottom h1{color:#fff!important}
+.student-login-stage65-center>p,
+.student-login-stage65-bottom>p:not(.stage6-kicker),
+.student-login-stage65-bottom blockquote{color:#d4e2e9!important}
+.student-login-stage65-points>div{
+  background:rgba(255,255,255,.045)!important;
+  border-color:rgba(255,255,255,.11)!important;
+}
+.student-login-stage65-points strong{color:#cdb56b!important}
+.student-login-stage65-points span{color:#f4f8fa!important}
+.student-login-stage61-card{
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+  box-shadow:0 18px 48px rgba(8,47,73,.07)!important;
+}
+.student-login-stage61-intro h2{color:#082f49!important}
+.student-login-stage61-intro>svg{color:#082f49!important}
+.student-login-control{
+  background:#fbfcfd!important;
+  border-color:#dce5e9!important;
+}
+.student-login-control:focus-within{
+  border-color:#86aebf!important;
+  box-shadow:0 0 0 4px rgba(8,47,73,.07)!important;
+}
+.student-login-privacy{
+  background:#f3f6f8!important;
+  border-color:#dfe7eb!important;
+  color:#506773!important;
+}
+
+/* Student portal — same navy system, calmer than staff but identical language. */
+.student-portal-stage61,
+.assessment-page,
+.career-page{background:#f4f6f8!important}
+.student-portal-brandbar,
+.student-workspace-topbar{
+  background:rgba(255,255,255,.96)!important;
+  border-color:#dfe6eb!important;
+  box-shadow:0 5px 18px rgba(8,47,73,.025)!important;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.student-portal-brandbar-identity strong,
+.workspace-brand strong{color:#082f49!important}
+.student-portal-card,
+.assessment-section-card,
+.assessment-review-card,
+.student-plan-card{
+  border-color:#dfe6eb!important;
+  background:#fff!important;
+  box-shadow:0 7px 22px rgba(8,47,73,.03)!important;
+}
+.student-portal-card>svg:first-child,
+.student-portal-card>div:first-child{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.student-portal-card span{color:#0b3b57!important}
+.student-portal-card h2{color:#082f49!important}
+.student-portal-logout{
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+  color:#082f49!important;
+}
+.assessment-section-card h2,
+.assessment-review-card h2{color:#082f49!important}
+.assessment-option{
+  border-color:#dfe6eb!important;
+  background:#fff!important;
+}
+.assessment-option:hover,.assessment-option.selected{
+  border-color:#9eb9c6!important;
+  background:#f3f6f8!important;
+}
+.assessment-option.selected{box-shadow:inset 0 0 0 1px #082f49!important}
+
+/* Student workspace / proposals / LifeMap. */
+.student-workspace-page{background:#f4f6f8!important}
+.student-hero h1{color:#082f49!important}
+.workspace-tabs{
+  border-color:#dfe6eb!important;
+  box-shadow:0 5px 18px rgba(8,47,73,.025)!important;
+}
+.workspace-tabs button.active{
+  background:#082f49!important;
+  color:#fff!important;
+}
+.journey-strip{
+  border-color:#dfe6eb!important;
+  box-shadow:0 5px 18px rgba(8,47,73,.025)!important;
+}
+.journey-node.done span,.aspect-index,.roadmap-number{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.journey-node.done strong{color:#082f49!important}
+.life-aspect.filled{
+  border-color:#cbdbe3!important;
+  background:#fbfcfd!important;
+}
+.version-card.current{
+  background:#f0f4f6!important;
+  border-color:#cad9e0!important;
+}
+.version-actions button,.refresh-btn{
+  color:#082f49!important;
+  border-color:#d8e2e7!important;
+  background:#fff!important;
+}
+
+/* BK / counseling. */
+.assessment-inbox-metric strong{color:#082f49!important}
+.need-signal-icon{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.need-signal-meta span{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.assessment-attempt-row:hover{background:#f7f9fa!important}
+.review-answer{
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+}
+.review-answer::before{background:#a7bdc8!important}
+.review-answer small{color:#536e7c!important}
+.review-answer strong{color:#082f49!important}
+.review-answer p{background:#f5f7f9!important;color:#314956!important}
+.counselor-review-form{box-shadow:0 12px 34px rgba(8,47,73,.055)!important}
+.bk-assessment-quick-access,
+.bk-quick-stack .bk-assessment-quick-access:hover{
+  background:#082f49!important;
+  color:#fff!important;
+  border-color:#082f49!important;
+}
+.bk-quick-stack .bk-assessment-quick-access{
+  color:#082f49!important;
+  background:#fff!important;
+  border-color:#dfe6eb!important;
+}
+
+/* System Management. */
+.system-management-page{background:#f4f6f8!important}
+.system-topbar{border-color:#dfe6eb!important}
+.system-hero h1,.system-topbar strong,.system-card-head h2,
+.system-stat strong,.system-card-head span{color:#082f49!important}
+.system-tabs{border-color:#dfe6eb!important}
+.system-tabs button.active{background:#082f49!important;color:#fff!important}
+.system-stat>div,.system-avatar{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.system-search,.import-drop{
+  background:#f8fafb!important;
+  border-color:#dce5e9!important;
+}
+.import-drop{color:#082f49!important}
+.system-pin-reveal{
+  background:#eef3f6!important;
+  border-color:#d4e1e7!important;
+  color:#082f49!important;
+}
+
+/* Career + action plan: remove the remaining green/teal feel. */
+.student-plan-status.completed,
+.published,.career-editor-status .ready,
+.career-stage-badge.eksplorasi,.career-stage-badge.punya_rencana{
+  background:#edf3f6!important;
+  color:#082f49!important;
+}
+.student-plan-note{
+  background:#f3f6f8!important;
+  border-color:#dce5e9!important;
+  color:#082f49!important;
+}
+.career-feature-card>svg:first-child,
+.career-profile-icon,.career-choice-label,
+.career-compare-head a,.career-select-check,
+.career-metric-icon,.career-plan-mini b{
+  background:#eef3f6!important;
+  color:#082f49!important;
+}
+.career-feature-card:hover,.career-profile-card:hover,
+.career-select-card:hover,.career-select-card.selected,
+.career-admin-list-item:hover,.career-admin-list-item.active{
+  border-color:#b9cbd4!important;
+  background:#f7f9fa!important;
+}
+.career-select-card.selected .career-select-check{
+  background:#082f49!important;
+  border-color:#082f49!important;
+  color:#fff!important;
+}
+.career-360-hero h1,.career-profile-card h2,
+.career-feature-card h2,.career-admin-list-item strong{color:#082f49!important}
+
+/* Tables/lists/scroll areas feel deliberate instead of raw. */
+.career-admin-list-items,.career-monitor-table,.report-student-list,
+.review-answer-list,.docx-preview,.workspace-tabs{
+  scrollbar-width:thin;
+  scrollbar-color:#b7c6ce transparent;
+}
+.career-monitor-head,.import-head{
+  background:#f3f6f8!important;
+}
+.career-monitor-row:hover,.system-student-list article:hover{
+  background:#fafcfd!important;
+}
+
+/* Small responsive corrections — no horizontal spill. */
+@media(max-width:1080px){
+  .stage6-content{padding-inline:22px!important}
+  .stage6-hero{min-height:unset!important}
+}
+@media(max-width:760px){
+  .stage6-sidebar{
+    background:#fff!important;
+    padding:10px 12px 12px!important;
+  }
+  .stage6-nav{gap:6px!important}
+  .stage6-nav a,.stage6-nav button{
+    font-size:12px!important;
+    min-height:46px!important;
+    border-radius:13px!important;
+  }
+  .stage6-nav a svg,.stage6-nav button svg{
+    width:30px!important;height:30px!important;flex-basis:30px!important;padding:7px!important;
+  }
+  .stage6-topbar{
+    position:sticky!important;
+    padding:11px 14px!important;
+    min-height:66px!important;
+  }
+  .stage6-topbar-copy span{display:none}
+  .stage6-search{width:min(58vw,360px)!important}
+  .stage6-hero-actions{display:grid!important;grid-template-columns:1fr!important;width:100%!important}
+  .stage6-primary-link,.stage6-secondary-link{width:100%!important;justify-content:center!important}
+  .student-login-stage61-brand{box-shadow:none!important}
+}
+@media(max-width:520px){
+  .stage6-nav{grid-template-columns:1fr 1fr!important}
+  .stage6-topbar{display:grid!important;grid-template-columns:1fr!important}
+  .stage6-search{width:100%!important}
+  .stage6-content{padding:12px 10px 28px!important}
+  .stage6-hero{padding:21px 18px!important;border-radius:19px!important}
+  .stage6-stat-grid{grid-template-columns:1fr 1fr!important}
+  .stage62-insight-grid{grid-template-columns:1fr!important}
+  .stage6-directory{padding:13px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .stage6-reveal.is-visible{animation:none!important}
+}
+
+
+/* Stage 10 — premium executive hero for the initial Guru BK dashboard. */
+.stage6-hero{
+  position:relative!important;
+  isolation:isolate;
+  overflow:hidden!important;
+  min-height:268px!important;
+  padding:38px 40px!important;
+  border:1px solid rgba(255,255,255,.07)!important;
+  border-radius:28px!important;
+  background:
+    radial-gradient(circle at 82% 18%,rgba(99,191,227,.17),transparent 21rem),
+    radial-gradient(circle at 96% 112%,rgba(198,166,74,.12),transparent 19rem),
+    linear-gradient(135deg,#061f31 0%,#082f49 52%,#0b3b57 100%)!important;
+  box-shadow:0 22px 58px rgba(8,47,73,.15)!important;
+}
+.stage6-hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-2;
+  pointer-events:none;
+  background:
+    linear-gradient(115deg,rgba(255,255,255,.035),transparent 30%),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.016) 0 1px,transparent 1px 18px);
+  opacity:.72;
+}
+.stage6-hero::after{
+  content:""!important;
+  position:absolute!important;
+  z-index:-1;
+  width:330px!important;
+  height:330px!important;
+  right:-82px!important;
+  bottom:-172px!important;
+  border:1px solid rgba(255,255,255,.075)!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  box-shadow:
+    0 0 0 38px rgba(255,255,255,.023),
+    0 0 0 78px rgba(255,255,255,.016),
+    0 0 0 120px rgba(99,191,227,.025)!important;
+}
+.stage6-hero-copy{
+  position:relative!important;
+  z-index:2!important;
+  max-width:820px!important;
+}
+.stage6-hero .stage6-kicker{
+  display:inline-flex!important;
+  align-items:center!important;
+  width:max-content!important;
+  margin:0 0 17px!important;
+  padding:7px 10px!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.055)!important;
+  color:#a9d7ea!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  letter-spacing:.16em!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+.stage6-hero h1{
+  max-width:770px!important;
+  margin:0 0 17px!important;
+  color:#fff!important;
+  font-size:clamp(38px,4.35vw,62px)!important;
+  line-height:.99!important;
+  letter-spacing:-.055em!important;
+  text-wrap:balance;
+}
+.stage6-hero-copy>p:last-child{
+  max-width:760px!important;
+  margin:0!important;
+  color:#cbd9e1!important;
+  font-size:15px!important;
+  line-height:1.72!important;
+}
+.stage6-hero-actions{
+  position:relative!important;
+  z-index:3!important;
+  align-self:center!important;
+  display:grid!important;
+  gap:10px!important;
+  min-width:218px!important;
+}
+.stage6-hero .stage6-primary-link,
+.stage6-hero .stage6-primary-link:visited{
+  min-height:50px!important;
+  justify-content:center!important;
+  border:1px solid rgba(255,255,255,.94)!important;
+  border-radius:15px!important;
+  background:#fff!important;
+  color:#082f49!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.13)!important;
+  font-weight:850!important;
+}
+.stage6-hero .stage6-primary-link svg{color:#082f49!important}
+.stage6-hero .stage6-primary-link:hover{
+  background:#f4f8fa!important;
+  border-color:#f4f8fa!important;
+  color:#06283d!important;
+  transform:translateY(-2px)!important;
+  box-shadow:0 14px 30px rgba(0,0,0,.16)!important;
+}
+.stage6-hero .stage6-secondary-link,
+.stage6-hero .stage6-secondary-link:visited{
+  min-height:50px!important;
+  justify-content:center!important;
+  border:1px solid rgba(255,255,255,.28)!important;
+  border-radius:15px!important;
+  background:rgba(255,255,255,.07)!important;
+  color:#fff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045)!important;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  font-weight:820!important;
+}
+.stage6-hero .stage6-secondary-link svg{color:#fff!important}
+.stage6-hero .stage6-secondary-link:hover{
+  background:rgba(255,255,255,.13)!important;
+  border-color:rgba(255,255,255,.42)!important;
+  color:#fff!important;
+  transform:translateY(-2px)!important;
+}
+
+/* Premium first-screen rhythm beneath the hero. */
+.stage6-stat-grid{
+  margin-top:20px!important;
+  gap:14px!important;
+}
+.stage6-stat{
+  min-height:132px!important;
+  border:1px solid #dfe6eb!important;
+  border-radius:20px!important;
+  background:linear-gradient(180deg,#fff 0%,#fbfcfd 100%)!important;
+  box-shadow:0 9px 25px rgba(8,47,73,.04)!important;
+}
+.stage6-stat::before{
+  content:"";
+  position:absolute;
+  left:18px;
+  top:0;
+  width:42px;
+  height:3px;
+  border-radius:0 0 999px 999px;
+  background:#082f49;
+}
+.stage6-stat::after{background:rgba(8,47,73,.028)!important}
+.stage6-stat:hover{
+  transform:translateY(-2px)!important;
+  border-color:#cedbe2!important;
+  box-shadow:0 15px 34px rgba(8,47,73,.065)!important;
+}
+.stage6-stat span{color:#667c89!important}
+.stage6-stat strong{color:#082f49!important}
+.stage6-stat small{color:#8a9aa4!important}
+
+.stage62-insight-card{
+  border-radius:22px!important;
+  box-shadow:0 10px 28px rgba(8,47,73,.042)!important;
+}
+.stage62-insight-card:first-child{
+  border-top:3px solid #082f49!important;
+}
+.stage62-insight-card:last-child{
+  border-top:3px solid #c6a64a!important;
+}
+
+@media(max-width:1080px){
+  .stage6-hero{
+    min-height:unset!important;
+    padding:32px 30px!important;
+  }
+  .stage6-hero h1{font-size:clamp(36px,5vw,52px)!important}
+}
+@media(max-width:760px){
+  .stage6-hero{
+    padding:27px 22px!important;
+    border-radius:22px!important;
+  }
+  .stage6-hero h1{
+    max-width:100%!important;
+    font-size:clamp(34px,9vw,48px)!important;
+    line-height:1.02!important;
+  }
+  .stage6-hero-copy>p:last-child{font-size:14px!important}
+  .stage6-hero-actions{
+    width:100%!important;
+    min-width:0!important;
+    margin-top:24px!important;
+  }
+}
+@media(max-width:520px){
+  .stage6-hero{
+    padding:24px 18px!important;
+    border-radius:19px!important;
+  }
+  .stage6-hero .stage6-kicker{
+    font-size:9px!important;
+    letter-spacing:.12em!important;
+  }
+  .stage6-stat-grid{margin-top:12px!important}
+}
+
+
+/* Stage 10.1 — precise official-logo sizing in BK headers. */
+.brand-logo{
+  object-fit:contain!important;
+  object-position:center!important;
+}
+.stage62-control .student-workspace-topbar{
+  min-height:94px!important;
+  padding:8px 28px!important;
+  overflow:visible!important;
+}
+.stage62-control .workspace-brand{
+  min-width:0;
+  display:flex!important;
+  align-items:center!important;
+  gap:14px!important;
+  line-height:1.15;
+}
+.stage62-control .workspace-brand .brand-logo{
+  width:auto!important;
+  height:66px!important;
+  max-width:106px!important;
+  max-height:66px!important;
+  flex:0 0 auto!important;
+  object-fit:contain!important;
+  object-position:center!important;
+}
+.stage62-control .workspace-brand>span{
+  color:#778a96!important;
+  font-size:12px!important;
+  white-space:nowrap;
+}
+.stage62-control .workspace-brand>strong{
+  color:#082f49!important;
+  font-size:13px!important;
+  white-space:nowrap;
+}
+@media(max-width:900px){
+  .stage62-control .student-workspace-topbar{
+    min-height:82px!important;
+    padding:7px 18px!important;
+  }
+  .stage62-control .workspace-brand .brand-logo{
+    height:56px!important;
+    max-width:90px!important;
+    max-height:56px!important;
+  }
+  .stage62-control .workspace-brand>span{display:none}
+}
+@media(max-width:620px){
+  .stage62-control .student-workspace-topbar{
+    min-height:74px!important;
+    padding:6px 14px!important;
+  }
+  .stage62-control .workspace-brand .brand-logo{
+    height:48px!important;
+    max-width:77px!important;
+    max-height:48px!important;
+  }
+  .stage62-control .workspace-brand>strong{
+    font-size:11px!important;
+  }
+}
+
+.stage6-developer-credit{
+  padding:0 10px;
+  color:#91a0a9;
+  font-size:9px;
+  line-height:1.4;
+  letter-spacing:.015em;
+}
+.stage6-developer-credit strong{
+  color:#627783;
+  font-weight:850;
+}

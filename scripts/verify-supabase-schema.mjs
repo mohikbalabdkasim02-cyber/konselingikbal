@@ -27,6 +27,8 @@ const requiredTables = [
   "career_comparisons",
   "career_comparison_items",
   "career_portfolio_items",
+  "system_settings",
+  "student_import_jobs",
 ];
 
 const missing = [];

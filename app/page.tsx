@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ChevronRight, ClipboardList, Home, LogOut, Search, ShieldCheck, UserRound, Users } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChevronRight, ClipboardList, Home, LogOut, Search, Settings, ShieldCheck, UserRound, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 
@@ -24,6 +24,33 @@ type AssessmentAttempt = { student_id:string; status:string; assessment_definiti
 type ActionPlanRow = { student_id:string; status:string };
 type ConsultationRow = { student_id:string; status:string };
 
+function oneRelation<T>(value:T|T[]|null|undefined):T|null{
+  if(Array.isArray(value)) return value[0]??null;
+  return value??null;
+}
+function safeLower(value:unknown){return typeof value==="string"?value.toLowerCase():"";}
+function normalizeStudentRow(row:Record<string,unknown>):Student{
+  const classes=oneRelation(row.classes as Student["classes"]|Student["classes"][]);
+  const profile=oneRelation(row.student_profiles as Student["student_profiles"]|Student["student_profiles"][]);
+  return {
+    id:String(row.id??""),
+    full_name:String(row.full_name??""),
+    gender:(row.gender==="L"||row.gender==="P")?row.gender:null,
+    email:typeof row.email==="string"?row.email:null,
+    nis:typeof row.nis==="string"?row.nis:null,
+    nisn:typeof row.nisn==="string"?row.nisn:null,
+    classes,
+    student_profiles:profile,
+  };
+}
+function normalizeAttemptRow(row:Record<string,unknown>):AssessmentAttempt{
+  return {
+    student_id:String(row.student_id??""),
+    status:String(row.status??""),
+    assessment_definitions:oneRelation(row.assessment_definitions as AssessmentAttempt["assessment_definitions"]|AssessmentAttempt["assessment_definitions"][]),
+  };
+}
+
 export default function HomePage() {
   const [sessionReady, setSessionReady] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
@@ -40,78 +67,120 @@ export default function HomePage() {
   const [selected, setSelected] = useState<Student | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState<"ringkasan" | "siswa">("ringkasan");
+  const navigationLock = useRef<"ringkasan"|"siswa"|null>(null);
+  const navigationTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const loadedSessionUser = useRef<string|null>(null);
 
   useEffect(() => {
+    const hydrateForSession=(session:{user?:{id?:string}}|null)=>{
+      const userId=session?.user?.id??null;
+      const active=Boolean(userId);
+      setLoggedIn(active);
+      if(active && loadedSessionUser.current!==userId){
+        loadedSessionUser.current=userId;
+        void loadStudents();
+      }
+      if(!active){
+        loadedSessionUser.current=null;
+        setStudents([]);
+      }
+    };
+
     supabase.auth.getSession().then(({ data }) => {
-      const active = Boolean(data.session);
-      setLoggedIn(active);
+      hydrateForSession(data.session);
       setSessionReady(true);
-      if (active) loadStudents();
+    }).catch(()=>{
+      setSessionReady(true);
+      setLoggedIn(false);
     });
+
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      const active = Boolean(session);
-      setLoggedIn(active);
-      if (active) loadStudents();
-      else setStudents([]);
+      hydrateForSession(session);
+      setSessionReady(true);
     });
     return () => listener.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
-    const syncFromHash = () => {
-      if (window.location.hash === "#siswa") setActiveSection("siswa");
-      else if (window.location.hash === "#ringkasan" || !window.location.hash) setActiveSection("ringkasan");
+    if(!loggedIn) return;
+    const sectionIds:Array<"ringkasan"|"siswa">=["ringkasan","siswa"];
+    const sections=sectionIds.map(id=>document.getElementById(id)).filter((node):node is HTMLElement=>Boolean(node));
+    const syncInitial=()=>{
+      const hash=window.location.hash.replace("#","");
+      if(hash==="siswa"||hash==="ringkasan"){
+        setActiveSection(hash);
+        requestAnimationFrame(()=>document.getElementById(hash)?.scrollIntoView({block:"start"}));
+      }
     };
+    const observer=new IntersectionObserver((entries)=>{
+      const visible=entries.filter(entry=>entry.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio);
+      const id=visible[0]?.target.id;
+      if(navigationLock.current) return;
+      if(id==="ringkasan"||id==="siswa") setActiveSection(id);
+    },{root:null,rootMargin:"-92px 0px -48% 0px",threshold:[0.05,0.2,0.45,0.7]});
+    sections.forEach(section=>observer.observe(section));
+    syncInitial();
+    return()=>observer.disconnect();
+  },[loggedIn]);
 
-    const updateFromScroll = () => {
-      const directory = document.getElementById("siswa");
-      if (!directory) return;
-      const directoryTop = directory.getBoundingClientRect().top + window.scrollY;
-      const readingLine = window.scrollY + 150;
-      setActiveSection(readingLine >= directoryTop ? "siswa" : "ringkasan");
-    };
+  useEffect(()=>{
+    if(!loggedIn) return;
+    const nodes=Array.from(document.querySelectorAll<HTMLElement>(".stage6-reveal"));
+    if(!("IntersectionObserver" in window)){nodes.forEach(node=>node.classList.add("is-visible"));return}
+    const observer=new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          (entry.target as HTMLElement).classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },{threshold:0.1,rootMargin:"0px 0px -36px 0px"});
+    nodes.forEach(node=>observer.observe(node));
+    return()=>observer.disconnect();
+  },[loggedIn,students.length]);
 
-    syncFromHash();
-    window.addEventListener("hashchange", syncFromHash);
-    window.addEventListener("scroll", updateFromScroll, { passive: true });
-    return () => {
-      window.removeEventListener("hashchange", syncFromHash);
-      window.removeEventListener("scroll", updateFromScroll);
-    };
-  }, []);
+  function scrollToSection(id:"ringkasan"|"siswa"){
+    navigationLock.current=id;
+    setActiveSection(id);
+    const target=document.getElementById(id);
+    if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+    window.history.replaceState(null,"",`#${id}`);
+    if(navigationTimer.current) clearTimeout(navigationTimer.current);
+    navigationTimer.current=setTimeout(()=>{navigationLock.current=null;},650);
+  }
 
   async function loadStudents() {
     setLoading(true);
     setAuthMessage("");
-    const [studentsRes, docsRes, attemptsRes, plansRes, consultationsRes] = await Promise.all([
-      supabase
+    try{
+      // Critical path: render the student directory first.
+      const studentsRes = await supabase
         .from("students")
         .select("id,full_name,gender,email,nis,nisn,classes(name,slug,grade),student_profiles(journey_stage,expertise,career_direction)")
         .eq("is_active", true)
-        .order("full_name"),
-      supabase
-        .from("student_documents")
-        .select("student_id,status,latest_version")
-        .eq("document_type", "proposal_hidup"),
-      supabase
-        .from("assessment_attempts")
-        .select("student_id,status,assessment_definitions(domain)")
-        .in("status", ["draft","submitted","reviewed"]),
-      supabase
-        .from("assessment_action_plans")
-        .select("student_id,status"),
-      supabase
-        .from("consultation_requests")
-        .select("student_id,status")
-        .in("status", ["requested","scheduled"]),
-    ]);
-    if (studentsRes.error) setAuthMessage(studentsRes.error.message);
-    else setStudents((studentsRes.data ?? []) as unknown as Student[]);
-    if (!docsRes.error) setDocuments(Object.fromEntries(((docsRes.data ?? []) as StudentDocument[]).map((item) => [item.student_id, item])));
-    if (!attemptsRes.error) setAttempts((attemptsRes.data ?? []) as unknown as AssessmentAttempt[]);
-    if (!plansRes.error) setActionPlans((plansRes.data ?? []) as ActionPlanRow[]);
-    if (!consultationsRes.error) setConsultations((consultationsRes.data ?? []) as ConsultationRow[]);
-    setLoading(false);
+        .order("full_name");
+      if (studentsRes.error) throw studentsRes.error;
+      setStudents(((studentsRes.data??[]) as unknown as Record<string,unknown>[]).map(normalizeStudentRow));
+      setLoading(false);
+
+      // Non-critical dashboard indicators load after the directory is already usable.
+      void Promise.all([
+        supabase.from("student_documents").select("student_id,status,latest_version").eq("document_type", "proposal_hidup"),
+        supabase.from("assessment_attempts").select("student_id,status,assessment_definitions(domain)").in("status", ["draft","submitted","reviewed"]),
+        supabase.from("assessment_action_plans").select("student_id,status"),
+        supabase.from("consultation_requests").select("student_id,status").in("status", ["requested","scheduled"]),
+      ]).then(([docsRes,attemptsRes,plansRes,consultationsRes])=>{
+        if (!docsRes.error) setDocuments(Object.fromEntries(((docsRes.data ?? []) as StudentDocument[]).map((item) => [item.student_id, item])));
+        if (!attemptsRes.error) setAttempts(((attemptsRes.data??[]) as unknown as Record<string,unknown>[]).map(normalizeAttemptRow));
+        if (!plansRes.error) setActionPlans((plansRes.data ?? []) as ActionPlanRow[]);
+        if (!consultationsRes.error) setConsultations((consultationsRes.data ?? []) as ConsultationRow[]);
+      }).catch(()=>{ /* Secondary metrics must never block the directory. */ });
+    }catch(error){
+      const message=error instanceof Error?error.message:"Dashboard gagal memuat data.";
+      setAuthMessage(message);
+      setStudents([]);
+      setLoading(false);
+    }
   }
 
   function validatePin() {
@@ -151,8 +220,8 @@ export default function HomePage() {
 
   const classes = useMemo(
     () =>
-      [...new Map(students.filter((s) => s.classes).map((s) => [s.classes!.slug, s.classes!])).values()].sort(
-        (a, b) => a.grade - b.grade || a.name.localeCompare(b.name),
+      [...new Map(students.filter((s) => s.classes?.slug && s.classes?.name).map((s) => [s.classes!.slug, s.classes!])).values()].sort(
+        (a, b) => (a.grade??0) - (b.grade??0) || String(a.name??"").localeCompare(String(b.name??""),"id"),
       ),
     [students],
   );
@@ -163,7 +232,7 @@ export default function HomePage() {
       const matchesQuery =
         !q ||
         [student.full_name, student.email, student.nis, student.nisn, student.student_profiles?.career_direction].some(
-          (value) => value?.toLowerCase().includes(q),
+          (value) => safeLower(value).includes(q),
         );
       const matchesClass = classFilter === "all" || student.classes?.slug === classFilter;
       const matchesGrade = gradeFilter === "all" || String(student.classes?.grade) === gradeFilter;
@@ -263,27 +332,30 @@ export default function HomePage() {
           <BrandLogo compact />
         </div>
         <nav className="stage6-nav" aria-label="Navigasi utama">
-          <a
-            href="#ringkasan"
+          <button
+            type="button"
             className={activeSection === "ringkasan" ? "active" : ""}
             aria-current={activeSection === "ringkasan" ? "page" : undefined}
-            onClick={() => setActiveSection("ringkasan")}
+            onClick={() => scrollToSection("ringkasan")}
           >
-            <Home /> Ringkasan
-          </a>
-          <a
-            href="#siswa"
+            <Home /> <span>Ringkasan</span>
+          </button>
+          <button
+            type="button"
             className={activeSection === "siswa" ? "active" : ""}
             aria-current={activeSection === "siswa" ? "page" : undefined}
-            onClick={() => setActiveSection("siswa")}
+            onClick={() => scrollToSection("siswa")}
           >
-            <Users /> Daftar Siswa
-          </a>
+            <Users /> <span>Daftar Siswa</span>
+          </button>
           <Link href="/counseling">
             <ClipboardList /> BK Control Center
           </Link>
           <Link href="/student/login">
             <UserRound /> Portal Siswa
+          </Link>
+          <Link href="/system-management">
+            <Settings /> Manajemen Sistem
           </Link>
         </nav>
         <div className="stage6-sidebar-foot">
@@ -291,6 +363,7 @@ export default function HomePage() {
             <span>TAHUN AJARAN</span>
             <strong>2026/2027</strong>
           </div>
+          <div className="stage6-developer-credit">Dikembangkan oleh <strong>Teman Digital</strong></div>
           <nav className="stage6-nav">
             <button onClick={() => supabase.auth.signOut()}>
               <LogOut /> Keluar
@@ -301,6 +374,7 @@ export default function HomePage() {
 
       <section className="stage6-main">
         <header className="stage6-topbar">
+          <div className="stage6-mobile-topbrand"><BrandLogo compact/><div><strong>LifeMap</strong><span>Guru BK</span></div></div>
           <div className="stage6-topbar-copy">
             <strong>Student Development Platform</strong>
             <span>Bina Insan Palu High School</span>
@@ -317,7 +391,7 @@ export default function HomePage() {
         </header>
 
         <div className="stage6-content">
-          <section className="stage6-hero" id="ringkasan">
+          <section className="stage6-hero stage6-reveal" id="ringkasan">
             <div className="stage6-hero-copy">
               <p className="stage6-kicker">LIFEMAP 360° · DATA TERHUBUNG</p>
               <h1>Pendampingan siswa yang jelas dari data menuju tindakan.</h1>
@@ -336,14 +410,14 @@ export default function HomePage() {
             </div>
           </section>
 
-          <section className="stage6-stat-grid" aria-label="Ringkasan data siswa">
+          <section className="stage6-stat-grid stage6-reveal" aria-label="Ringkasan data siswa">
             <SummaryStat title="Total siswa" value={students.length} note="Siswa aktif" />
             <SummaryStat title="Sudah asesmen" value={studentsWithAssessment} note="Memiliki attempt asesmen" />
             <SummaryStat title="Action Plan aktif" value={activePlans} note="Siswa dengan rencana berjalan" />
             <SummaryStat title="Request BK" value={openRequests} note="Menunggu / terjadwal" />
           </section>
 
-          <section className="stage62-insight-grid" aria-label="Assessment Pulse">
+          <section className="stage62-insight-grid stage6-reveal" aria-label="Assessment Pulse">
             <article className="stage62-insight-card">
               <div className="stage62-insight-head"><div><p className="stage6-kicker">ASSESSMENT PULSE</p><h2>Gambaran asesmen siswa</h2><p>Persentase siswa yang telah menyelesaikan tiap domain asesmen.</p></div></div>
               <div className="stage62-domain-bars">
@@ -362,7 +436,7 @@ export default function HomePage() {
             </aside>
           </section>
 
-          <section className="stage6-directory" id="siswa">
+          <section className="stage6-directory stage6-reveal" id="siswa">
             <div className="stage6-directory-head">
               <div>
                 <p className="stage6-kicker">STUDENT DIRECTORY</p>
