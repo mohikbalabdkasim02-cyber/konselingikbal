@@ -512,6 +512,7 @@ export default function SystemManagementPage() {
         <button className={tab === "reports" ? "active" : ""} onClick={() => setTab("reports")}><FileText size={17}/> Laporan</button>
         <button className={tab === "settings" ? "active" : ""} onClick={() => setTab("settings")}><Settings size={17}/> Pengaturan</button>
       </nav>
+      {tab !== "overview" && <button type="button" className="system-mobile-back" onClick={() => setTab("overview")}><ArrowLeft size={20}/><span>Kembali ke Manajemen Sistem</span></button>}
 
       {tab === "overview" && <section className="system-content">
         <div className="system-stat-grid">
@@ -520,7 +521,14 @@ export default function SystemManagementPage() {
           <Metric label="Siswa diarsipkan" value={stats.inactive} icon={<UserRound size={20}/>}/>
           <Metric label="Riwayat import" value={stats.imports} icon={<FileSpreadsheet size={20}/>}/>
         </div>
-        <div className="system-grid two">
+        <nav className="system-mobile-menu" aria-label="Menu Manajemen Sistem">
+          <button type="button" onClick={() => setTab("students")}><Users/><div><strong>Siswa</strong><span>Data, akses, arsip, dan laporan individual</span></div><ChevronRight/></button>
+          <button type="button" onClick={() => setTab("classes")}><Building2/><div><strong>Kelas</strong><span>Rombel dan tahun ajaran aktif</span></div><ChevronRight/></button>
+          <button type="button" onClick={() => setTab("import")}><Upload/><div><strong>Import Data</strong><span>Perbarui roster siswa dari file</span></div><ChevronRight/></button>
+          <button type="button" onClick={() => setTab("reports")}><FileText/><div><strong>Laporan</strong><span>PDF individual dan laporan kelompok</span></div><ChevronRight/></button>
+          <button type="button" onClick={() => setTab("settings")}><Settings/><div><strong>Pengaturan</strong><span>Identitas sekolah dan format laporan</span></div><ChevronRight/></button>
+        </nav>
+        <div className="system-grid two system-overview-desktop">
           <section className="system-card">
             <div className="system-card-head"><div><span>TAHUN AJARAN</span><h2>{activeYear?.name ?? "Belum ada tahun aktif"}</h2></div><GraduationCap size={23}/></div>
             <div className="system-list compact">{years.map((year) => <div key={year.id}><div><strong>{year.name}</strong><small>{year.starts_on ?? "-"} - {year.ends_on ?? "-"}</small></div>{year.is_active ? <span className="system-status active">Aktif</span> : <button onClick={() => setActiveYear(year.id)}>Jadikan aktif</button>}</div>)}</div>
@@ -535,7 +543,7 @@ export default function SystemManagementPage() {
             </div>
           </section>
         </div>
-        <section className="system-card">
+        <section className="system-card system-overview-desktop">
           <div className="system-card-head"><div><span>IMPORT TERBARU</span><h2>Riwayat pembaruan roster</h2></div><RefreshCw size={20}/></div>
           <div className="system-list">{importJobs.length ? importJobs.map((job) => <div key={String(job.id)}><div><strong>{String(job.file_name ?? "Import")}</strong><small>{String(job.created_at ?? "")} • {String(job.row_count ?? 0)} baris</small></div><span className="system-status">{String(job.status ?? "-")}</span></div>) : <p className="muted">Belum ada import data.</p>}</div>
         </section>

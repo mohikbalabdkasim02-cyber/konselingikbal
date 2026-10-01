@@ -374,6 +374,7 @@ export default function HomePage() {
 
       <section className="stage6-main">
         <header className="stage6-topbar">
+          <div className="stage6-mobile-topbrand"><BrandLogo compact/><div><strong>LifeMap</strong><span>Guru BK</span></div></div>
           <div className="stage6-topbar-copy">
             <strong>Student Development Platform</strong>
             <span>Bina Insan Palu High School</span>
