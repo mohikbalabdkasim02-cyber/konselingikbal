@@ -30,7 +30,7 @@ type NavItem = {
 
 const staffPrimary:NavItem[] = [
   {href:"/",label:"Beranda",icon:Home,match:(p,h)=>p==="/"&&h!=="#siswa"},
-  {href:"/#siswa",label:"Siswa",icon:Users,match:(p,h)=>p.startsWith("/students/")||(p==="/"&&h==="#siswa")},
+  {href:"/students",label:"Siswa",icon:Users,match:(p)=>p==="/students"||p.startsWith("/students/")},
   {href:"/counseling",label:"BK",icon:ShieldCheck,match:(p)=>p.startsWith("/counseling")},
 ];
 
