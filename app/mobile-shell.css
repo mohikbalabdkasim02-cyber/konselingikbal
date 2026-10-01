@@ -552,3 +552,117 @@
   /* Keep old floating BK shortcuts desktop-only. */
   .bk-quick-stack{display:none!important}
 }
+
+
+.career-mobile-back,
+.system-mobile-menu,
+.system-mobile-back{display:none}
+
+@media(max-width:820px){
+  /* Career Content Studio: library OR editor, never both at once. */
+  .career-admin-shell.mobile-library-mode .career-admin-new{display:flex!important}
+  .career-admin-shell.mobile-editor-mode .career-admin-new{display:none!important}
+  .career-admin-layout.mobile-library-open .career-editor{display:none!important}
+  .career-admin-layout.mobile-editor-open .career-admin-list{display:none!important}
+  .career-mobile-back{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    width:max-content;
+    margin:0 0 12px;
+    padding:9px 11px;
+    border:1px solid #dbe4e9;
+    border-radius:12px;
+    background:#f5f8fa;
+    color:#082f49;
+    font-size:11px;
+    font-weight:850;
+  }
+  .career-mobile-back svg{width:20px;height:20px}
+  .career-admin-list-items{max-height:none!important}
+  .career-admin-list-item{
+    min-height:58px!important;
+    padding:10px 11px!important;
+    border-radius:13px!important;
+  }
+  .career-admin-list-item strong{font-size:12.5px!important}
+  .career-editor{
+    min-height:auto!important;
+  }
+
+  /* System Management becomes a settings-style mobile hub. */
+  .system-tabs{display:none!important}
+  .system-mobile-menu{
+    display:grid;
+    gap:7px;
+    margin:0 0 10px;
+  }
+  .system-mobile-menu button{
+    appearance:none;
+    width:100%;
+    min-height:72px;
+    padding:10px 12px;
+    border:1px solid #dfe6eb;
+    border-radius:16px;
+    background:#fff;
+    display:grid;
+    grid-template-columns:44px minmax(0,1fr) 22px;
+    align-items:center;
+    gap:10px;
+    text-align:left;
+    color:#173646;
+    box-shadow:0 5px 16px rgba(8,47,73,.025);
+  }
+  .system-mobile-menu button>svg:first-child{
+    width:44px;
+    height:44px;
+    padding:10px;
+    border-radius:14px;
+    background:#eef3f6;
+    color:#082f49;
+    stroke-width:2;
+  }
+  .system-mobile-menu button>div{
+    display:grid;
+    gap:3px;
+  }
+  .system-mobile-menu strong{
+    color:#082f49;
+    font-size:13px;
+    line-height:1.2;
+  }
+  .system-mobile-menu span{
+    color:#7a8d98;
+    font-size:10px;
+    line-height:1.35;
+  }
+  .system-mobile-menu button>svg:last-child{
+    width:20px;
+    height:20px;
+    color:#9aa9b1;
+  }
+  .system-mobile-menu button:active{background:#f5f8fa;transform:scale(.99)}
+  .system-overview-desktop{display:none!important}
+  .system-mobile-back{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:calc(100% - 16px);
+    min-height:44px;
+    margin:0 8px 9px;
+    padding:0 12px;
+    border:1px solid #dfe6eb;
+    border-radius:13px;
+    background:#fff;
+    color:#082f49;
+    font-size:11px;
+    font-weight:850;
+  }
+  .system-mobile-back svg{width:20px;height:20px}
+  .system-management-page .system-content{
+    padding:0 8px 10px!important;
+  }
+  .system-management-page .system-stat-grid{
+    margin-bottom:9px!important;
+  }
+}
