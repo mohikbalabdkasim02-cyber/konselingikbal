@@ -363,6 +363,7 @@ export default function HomePage() {
             <span>TAHUN AJARAN</span>
             <strong>2026/2027</strong>
           </div>
+          <div className="stage6-developer-credit">Dikembangkan oleh <strong>Teman Digital</strong></div>
           <nav className="stage6-nav">
             <button onClick={() => supabase.auth.signOut()}>
               <LogOut /> Keluar

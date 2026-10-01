@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BKQuickAccess } from "@/components/bk/BKQuickAccess";
 import { PWARegister } from "@/components/pwa/PWARegister";
+import { DeveloperCredit } from "@/components/brand/DeveloperCredit";
 import "./globals.css";
 import "./smart.css";
 import "./bk-v2.css";
@@ -9,6 +10,7 @@ import "./career-v2.css";
 import "./career-admin.css";
 import "./stage6.css";
 import "./stage6-polish.css";
+import "./mobile-polish.css";
 
 export const metadata: Metadata = {
   title: "Bina Insan LifeMap",
@@ -34,6 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="id">
       <body>
         {children}
+        <DeveloperCredit />
         <BKQuickAccess />
         <PWARegister />
       </body>
