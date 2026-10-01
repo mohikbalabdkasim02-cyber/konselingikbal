@@ -198,8 +198,9 @@ function detectCareer(text: string, lines: string[]) {
   const careerBlock = blockAfter(lines, [/career/i, /karier/i, /pekerjaan/i, /cita[- ]?cita/i], 8);
   if (careerBlock) return firstUseful(careerBlock, 180);
 
-  const known = text.match(/\b(PNS|ASN|dokter|guru|dosen|polisi|TNI|tentara|pengusaha|wirausaha|programmer|developer|arsitek|apoteker|perawat|psikolog|akuntan|pengacara)\b/i);
-  return known?.[1] ?? "";
+  // Do not guess a career from an isolated profession word elsewhere in the proposal.
+  // A career is accepted only when it appears in an explicitly labelled career section.
+  return "";
 }
 
 export function parseProposalText(rawText: string): ProposalExtraction {
