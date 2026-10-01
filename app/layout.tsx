@@ -9,6 +9,7 @@ import "./career-v2.css";
 import "./career-admin.css";
 import "./stage6.css";
 import "./stage6-polish.css";
+import "./mobile-polish.css";
 
 export const metadata: Metadata = {
   title: "Bina Insan LifeMap",
